@@ -89,16 +89,17 @@ async function main() {
     console.log(`ID:  ${id}`);
     console.log(`PDF: ${pdfPath}`);
   } catch (err) {
-    const error = err as Error;
+    const error = err instanceof Error ? err : new Error(String(err));
+    const msg = error.message || '';
     console.error(`\n── Scraping failed ──`);
     console.error(`URL:     ${url}`);
     console.error(`Source:  ${source}`);
-    console.error(`Error:   ${error.message}`);
-    if (error.message.includes('timeout') || error.message.includes('Timeout')) {
+    console.error(`Error:   ${msg}`);
+    if (msg.includes('timeout') || msg.includes('Timeout')) {
       console.error(`\nHint: The page took too long to load. Try again or check if the URL is accessible.`);
-    } else if (error.message.includes('net::ERR_') || error.message.includes('ENOTFOUND')) {
+    } else if (msg.includes('net::ERR_') || msg.includes('ENOTFOUND')) {
       console.error(`\nHint: Could not reach the URL. Check your internet connection or verify the URL is correct.`);
-    } else if (error.message.includes('extract')) {
+    } else if (msg.includes('extract')) {
       console.error(`\nHint: The page loaded but article content could not be extracted. The site may use a format that isn't supported.`);
     }
     if (process.env.DEBUG) {

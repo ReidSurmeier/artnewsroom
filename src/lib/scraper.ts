@@ -48,13 +48,14 @@ export function extractArticle(html: string, url: string): ExtractedArticle | nu
   // ── Pre-Readability cleanup: strip junk elements ──
   const junkSelectors = [
     'nav', 'header', 'footer', 'aside',
-    '[role="navigation"]', '[role="banner"]',
+    'script', 'style', 'noscript', 'iframe',
+    'form',
+    '[role="navigation"]', '[role="banner"]', '[role="complementary"]', '[role="contentinfo"]',
     '.sidebar', '.related-posts', '.related-articles', '.related',
     '.newsletter', '.newsletter-signup', '.signup',
     '.social-share', '.share-buttons', '.sharing',
     '.comments', '.comment-section',
     '.advertisement', '.ad', '.ads', '.ad-container',
-    'script', 'style', 'iframe',
     '.nav', '.menu', '.breadcrumb',
     '.footer', '.site-header', '.site-footer',
     '.widget', '.popup', '.modal',
@@ -62,6 +63,16 @@ export function extractArticle(html: string, url: string): ExtractedArticle | nu
   for (const selector of junkSelectors) {
     document.querySelectorAll(selector).forEach(el => el.remove());
   }
+
+  // Strip elements with id/class matching ad, cookie, sidebar, widget patterns
+  const preCleanPatterns = /\b(cookie|consent|gdpr|popup|modal|overlay|banner|alert|notification|toolbar|skip|sticky|widget|recommended|trending|popular|most-read|most_read|latest-news|latest_news|more-stories|more_stories)\b/i;
+  document.querySelectorAll('*').forEach(el => {
+    const cls = el.getAttribute('class') || '';
+    const id = el.getAttribute('id') || '';
+    if (preCleanPatterns.test(cls) || preCleanPatterns.test(id)) {
+      el.remove();
+    }
+  });
 
   // Pre-Readability: promote lazy-loaded image data-src to src so Readability preserves them
   document.querySelectorAll('img').forEach(img => {
@@ -202,6 +213,45 @@ export function extractArticle(html: string, url: string): ExtractedArticle | nu
       }
     });
 
+    // Remove figure captions that are just photo credits
+    const creditPattern = /^(Getty|AP|Reuters|Courtesy|Photo:|AFP|Alamy|Shutterstock|Photograph:|Image:|Credit:)/i;
+    cleanDocument.querySelectorAll('figcaption').forEach(el => {
+      const text = (el.textContent || '').trim();
+      if (text.length < 80 && creditPattern.test(text)) {
+        el.remove();
+      }
+    });
+
+    // Remove divs/sections that are mostly links (>50% of text is inside anchors)
+    cleanDocument.querySelectorAll('div, section').forEach(el => {
+      const totalText = (el.textContent || '').trim();
+      if (totalText.length < 20) return; // skip tiny elements
+      let linkTextLen = 0;
+      el.querySelectorAll('a').forEach(a => {
+        linkTextLen += (a.textContent || '').trim().length;
+      });
+      if (linkTextLen > totalText.length * 0.5) {
+        el.remove();
+      }
+    });
+
+    // Remove duplicate images (same src appearing multiple times)
+    const seenSrcs = new Set<string>();
+    cleanDocument.querySelectorAll('img').forEach(img => {
+      const src = img.getAttribute('src') || '';
+      if (src && seenSrcs.has(src)) {
+        // Remove the duplicate img or its figure parent
+        const figure = img.closest('figure');
+        if (figure) {
+          figure.remove();
+        } else {
+          img.remove();
+        }
+      } else if (src) {
+        seenSrcs.add(src);
+      }
+    });
+
     // Fix image URLs: convert relative to absolute
     // Also check for lazy-loaded images with data-src attributes
     cleanDocument.querySelectorAll('img').forEach(img => {
@@ -263,6 +313,9 @@ export function extractArticle(html: string, url: string): ExtractedArticle | nu
   if (isBadTitle(title)) {
     title = getBestTitle();
   }
+
+  // Strip site name suffixes from title (e.g. " | Flash Art", " - Kunstkritikk", "—Asterisk")
+  title = title.replace(/\s*[\|\-\u2013\u2014]\s*[^|\-\u2013\u2014]{2,30}$/, '').trim();
 
   return {
     title: title || 'Untitled',

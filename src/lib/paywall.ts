@@ -5,11 +5,17 @@ import path from 'path';
 const CHROMIUM_PATH = '/home/reidsurmeier/.local/bin/chromium';
 const CREDENTIALS_PATH = path.join(process.cwd(), '.credentials', 'logins.json');
 
+interface SiteCredentials {
+  username: string;
+  password: string;
+  uri: string;
+}
+
 interface Credentials {
-  nyt?: { email: string; password: string };
-  newyorker?: { email: string; password: string };
-  atlantic?: { email: string; password: string };
-  nymag?: { email: string; password: string };
+  nyt?: SiteCredentials;
+  newyorker?: SiteCredentials;
+  atlantic?: SiteCredentials;
+  nymag?: SiteCredentials;
 }
 
 function loadCredentials(): Credentials {
@@ -22,9 +28,9 @@ function loadCredentials(): Credentials {
 
 // ── Site-specific login flows ──
 
-async function loginNYT(page: Page, creds: { email: string; password: string }): Promise<void> {
+async function loginNYT(page: Page, creds: SiteCredentials): Promise<void> {
   await page.goto('https://myaccount.nytimes.com/auth/login', { waitUntil: 'domcontentloaded' });
-  await page.fill('input[name="email"]', creds.email);
+  await page.fill('input[name="email"]', creds.username);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(2000);
   await page.fill('input[name="password"]', creds.password);
@@ -32,10 +38,10 @@ async function loginNYT(page: Page, creds: { email: string; password: string }):
   await page.waitForTimeout(3000);
 }
 
-async function loginNewYorker(page: Page, creds: { email: string; password: string }): Promise<void> {
+async function loginNewYorker(page: Page, creds: SiteCredentials): Promise<void> {
   await page.goto('https://www.newyorker.com/auth/initiate', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2000);
-  await page.fill('input[type="email"]', creds.email);
+  await page.fill('input[type="email"]', creds.username);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(2000);
   await page.fill('input[type="password"]', creds.password);
@@ -43,17 +49,17 @@ async function loginNewYorker(page: Page, creds: { email: string; password: stri
   await page.waitForTimeout(3000);
 }
 
-async function loginAtlantic(page: Page, creds: { email: string; password: string }): Promise<void> {
+async function loginAtlantic(page: Page, creds: SiteCredentials): Promise<void> {
   await page.goto('https://accounts.theatlantic.com/login/', { waitUntil: 'domcontentloaded' });
-  await page.fill('input[name="email"]', creds.email);
+  await page.fill('input[name="email"]', creds.username);
   await page.fill('input[name="password"]', creds.password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3000);
 }
 
-async function loginNYMag(page: Page, creds: { email: string; password: string }): Promise<void> {
+async function loginNYMag(page: Page, creds: SiteCredentials): Promise<void> {
   await page.goto('https://nymag.com/account/login', { waitUntil: 'domcontentloaded' });
-  await page.fill('input[type="email"]', creds.email);
+  await page.fill('input[type="email"]', creds.username);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(2000);
   await page.fill('input[type="password"]', creds.password);
@@ -65,7 +71,7 @@ async function loginNYMag(page: Page, creds: { email: string; password: string }
 
 type SourceKey = 'nyt' | 'newyorker' | 'atlantic' | 'nymag';
 
-const PAYWALL_SOURCES: Record<string, { key: SourceKey; login: (page: Page, creds: { email: string; password: string }) => Promise<void> }> = {
+const PAYWALL_SOURCES: Record<string, { key: SourceKey; login: (page: Page, creds: SiteCredentials) => Promise<void> }> = {
   'NYT Arts': { key: 'nyt', login: loginNYT },
   'NYT T Magazine': { key: 'nyt', login: loginNYT },
   'The New Yorker': { key: 'newyorker', login: loginNewYorker },
@@ -98,7 +104,7 @@ export async function loginToSite(page: Page, source: string): Promise<boolean> 
     console.log(`[paywall] Login complete for ${source}`);
     return true;
   } catch (err) {
-    console.error(`[paywall] Login failed for ${source}: ${(err as Error).message}`);
+    console.error(`[paywall] Login failed for ${source}: ${err instanceof Error ? err.message : String(err)}`);
     return false;
   }
 }
