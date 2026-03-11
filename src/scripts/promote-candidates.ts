@@ -86,17 +86,8 @@ async function main() {
       console.log('✅');
       success++;
     } else {
-      // Add with just title/metadata (no full text)
-      addArticle({
-        id,
-        title: c.title,
-        source: c.source,
-        source_url: c.url,
-        date_published: c.date,
-        date_added: new Date().toISOString(),
-        excerpt: `From ${c.source}. Score: ${c.score}`,
-      });
-      console.log('⚠️ (metadata only)');
+      // Skip — don't insert metadata-only shells with no content
+      console.log('⚠️ (skipped — no content)');
       failed++;
     }
 

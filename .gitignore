@@ -43,3 +43,8 @@ data/pdfs/
 .credentials/
 data/newsroom.db*
 data/pdfs/
+data/images/
+data/notes/
+data/logs/
+data/vibe-report/
+data/taste-profile.json

@@ -5,11 +5,13 @@ import TitleBar from '@/components/TitleBar';
 import Sidebar from '@/components/Sidebar';
 import ArticleFeed from '@/components/ArticleFeed';
 import ArticleReader from '@/components/ArticleReader';
+import WritersView from '@/components/WritersView';
 
 interface ArticleSummary {
   id: string;
   title: string;
   source: string;
+  author?: string;
   date_added: string;
   excerpt: string;
   is_read: number;
@@ -22,6 +24,12 @@ export default function Home() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterIds, setFilterIds] = useState<string[] | null>(null);
   const [showArchive, setShowArchive] = useState(false);
+  const [showWriters, setShowWriters] = useState(false);
+  const [trackedWriters, setTrackedWriters] = useState<string[]>([]);
+
+  // New mode states
+  const [drawMode, setDrawMode] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
 
   const loadArticles = () => {
     fetch('/api/articles').then(r => r.json()).then(setArticles);
@@ -31,13 +39,43 @@ export default function Home() {
     fetch('/api/articles?archived=true').then(r => r.json()).then(setArchivedArticles);
   };
 
+  const loadWriters = () => {
+    fetch('/api/writers').then(r => r.json()).then((writers: { name: string }[]) => {
+      setTrackedWriters(writers.map(w => w.name.toLowerCase()));
+    });
+  };
+
   useEffect(() => {
     loadArticles();
+    loadWriters();
   }, []);
 
   useEffect(() => {
     if (showArchive) loadArchived();
   }, [showArchive]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger shortcuts when typing in inputs
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      if (!selectedId) return;
+
+      // Shift+F = focus mode toggle
+      if (e.key === 'F' && e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setFocusMode(prev => !prev);
+      }
+      // Escape = exit focus
+      if (e.key === 'Escape') {
+        if (focusMode) setFocusMode(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedId, focusMode]);
 
   const currentArticles = showArchive ? archivedArticles : articles;
   const filteredArticles = filterIds
@@ -49,7 +87,16 @@ export default function Home() {
   }, []);
 
   const selectArticle = async (id: string) => {
+    if (!id) {
+      setShowWriters(false);
+      setSelectedId(null);
+      return;
+    }
+    setShowWriters(false);
     setSelectedId(id);
+    // Reset modes when switching articles
+    setDrawMode(false);
+    setFocusMode(false);
     const article = currentArticles.find(a => a.id === id);
     if (article && !article.is_read) {
       await fetch('/api/read', {
@@ -65,6 +112,8 @@ export default function Home() {
 
   const goBack = () => {
     setSelectedId(null);
+    setDrawMode(false);
+    setFocusMode(false);
   };
 
   const saveNotes = async (articleId: string, notes: string) => {
@@ -81,10 +130,8 @@ export default function Home() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ articleId, archived }),
     });
-    // Refresh both lists
     loadArticles();
     loadArchived();
-    // Go back to list after archiving
     setSelectedId(null);
   };
 
@@ -92,32 +139,59 @@ export default function Home() {
     setShowArchive(prev => !prev);
     setSelectedId(null);
     setFilterIds(null);
+    setShowWriters(false);
+  };
+
+  const handleShowWriters = () => {
+    setShowWriters(true);
+    setSelectedId(null);
+  };
+
+  const toggleDraw = () => setDrawMode(prev => !prev);
+  const toggleFocus = () => {
+    setFocusMode(prev => !prev);
+    setDrawMode(false);
   };
 
   const selectedArticle = currentArticles.find(a => a.id === selectedId);
+  const hideSidebar = !!selectedId || focusMode;
 
   return (
-    <>
+    <div className={`app-root${focusMode ? ' focus-mode' : ''}`}>
       <TitleBar
         articles={currentArticles}
         onFilter={handleFilter}
         showArchive={showArchive}
         onToggleArchive={toggleArchive}
+        articleSelected={!!selectedId}
+        drawMode={drawMode}
+        onToggleDraw={toggleDraw}
+        focusMode={focusMode}
+        onToggleFocus={toggleFocus}
       />
-      <Sidebar
-        articles={filteredArticles}
-        selectedId={selectedId}
-        onSelect={selectArticle}
-        hidden={!!selectedId}
-      />
-      <main className={`content-area${selectedId ? ' article-open' : ''}`}>
-        {selectedId ? (
+      {!focusMode && (
+        <Sidebar
+          articles={filteredArticles}
+          selectedId={selectedId}
+          onSelect={selectArticle}
+          hidden={hideSidebar}
+          trackedWriters={trackedWriters}
+          onShowWriters={handleShowWriters}
+          showingWriters={showWriters}
+        />
+      )}
+      <main className={`content-area${selectedId ? ' article-open' : ''}${focusMode ? ' focus-content' : ''}`}>
+        {showWriters ? (
+          <WritersView />
+        ) : selectedId ? (
           <ArticleReader
             articleId={selectedId}
             isArchived={!!selectedArticle?.is_archived}
             onBack={goBack}
             onSaveNotes={saveNotes}
             onArchive={handleArchive}
+            drawMode={drawMode}
+            focusMode={focusMode}
           />
         ) : (
           <ArticleFeed
@@ -126,6 +200,6 @@ export default function Home() {
           />
         )}
       </main>
-    </>
+    </div>
   );
 }

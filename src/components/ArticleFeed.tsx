@@ -4,9 +4,12 @@ interface ArticleSummary {
   id: string;
   title: string;
   source: string;
+  author?: string;
   date_added: string;
   excerpt: string;
   is_read: number;
+  has_images?: number;
+  has_content?: number;
 }
 
 interface ArticleFeedProps {
@@ -15,7 +18,10 @@ interface ArticleFeedProps {
 }
 
 export default function ArticleFeed({ articles, onSelect }: ArticleFeedProps) {
-  const top3 = articles.slice(0, 3);
+  // Top 3 picks must have full content AND images
+  const top3 = articles
+    .filter(a => a.has_images === 1 && a.has_content === 1)
+    .slice(0, 3);
 
   if (top3.length === 0) {
     return (

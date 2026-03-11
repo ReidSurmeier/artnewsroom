@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 import { marked } from 'marked';
+import { sanitizeMarkdown, sanitizeHtml } from './sanitize';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'newsroom.db');
 
@@ -56,22 +57,78 @@ function initDb(db: Database.Database) {
   // Migration: add is_archived column if not present
   try { db.exec('ALTER TABLE articles ADD COLUMN is_archived INTEGER DEFAULT 0'); } catch {}
 
+  // Writers table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS writers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL UNIQUE,
+      slug TEXT NOT NULL UNIQUE,
+      date_added TEXT NOT NULL,
+      notes TEXT DEFAULT ''
+    );
+  `);
+
+  // Annotations table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS annotations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id TEXT NOT NULL,
+      highlighted_text TEXT NOT NULL,
+      note_text TEXT DEFAULT '',
+      start_offset INTEGER NOT NULL,
+      end_offset INTEGER NOT NULL,
+      date_added TEXT NOT NULL,
+      FOREIGN KEY (article_id) REFERENCES articles(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_annotations_article ON annotations(article_id);
+  `);
+
+  // Drawings table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS drawings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id TEXT NOT NULL UNIQUE,
+      drawing_data TEXT NOT NULL,
+      date_added TEXT NOT NULL,
+      FOREIGN KEY (article_id) REFERENCES articles(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_drawings_article ON drawings(article_id);
+  `);
+
+  // Article images table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS article_images (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      article_id TEXT NOT NULL,
+      original_url TEXT,
+      ascii_art TEXT,
+      bw_image_path TEXT,
+      alt_text TEXT,
+      position INTEGER,
+      FOREIGN KEY (article_id) REFERENCES articles(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_article_images_article ON article_images(article_id);
+  `);
 }
 
 // Helper functions
 export function getArticles(includeArchived = false) {
   const db = getDb();
+  // Only return articles that have actual content (not metadata-only shells)
+  const contentFilter = "AND content_markdown IS NOT NULL AND content_markdown != ''";
   if (includeArchived) {
     return db.prepare(`
-      SELECT id, title, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
-        CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes
-      FROM articles ORDER BY date_added DESC
+      SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+        CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
+        CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images
+      FROM articles WHERE 1=1 ${contentFilter} ORDER BY date_added DESC
     `).all();
   }
   return db.prepare(`
-    SELECT id, title, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
-      CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes
-    FROM articles WHERE COALESCE(is_archived, 0) = 0 ORDER BY date_added DESC
+    SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+      CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
+      CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images
+    FROM articles WHERE COALESCE(is_archived, 0) = 0 ${contentFilter} ORDER BY date_added DESC
   `).all();
 }
 
@@ -138,9 +195,13 @@ export function addArticle(article: {
   pdf_path?: string;
 }) {
   const db = getDb();
-  const content_html = article.content_html
-    || (article.content_markdown ? (marked.parse(article.content_markdown) as string) : '');
-  const search_text = `${article.title} ${article.author || ''} ${article.source} ${article.content_markdown || ''}`;
+  // Sanitize content before storing
+  const cleanMd = article.content_markdown ? sanitizeMarkdown(article.content_markdown) : null;
+  const rawHtml = article.content_html
+    || (cleanMd ? (marked.parse(cleanMd) as string) : '');
+  const content_html = sanitizeHtml(rawHtml);
+  const content_markdown = cleanMd;
+  const search_text = `${article.title} ${article.author || ''} ${article.source} ${cleanMd || ''}`;
 
   db.prepare(`
     INSERT INTO articles (id, title, author, source, source_url, date_published, date_added, curator_note, content_markdown, content_html, excerpt, pdf_path, is_read, notes, search_text)
@@ -150,12 +211,108 @@ export function addArticle(article: {
     author: article.author ?? null,
     date_published: article.date_published ?? null,
     curator_note: article.curator_note ?? null,
-    content_markdown: article.content_markdown ?? null,
+    content_markdown: content_markdown ?? null,
     excerpt: article.excerpt ?? null,
     pdf_path: article.pdf_path ?? null,
     content_html,
     search_text,
   });
+}
+
+// Writers
+export function getWriters() {
+  const db = getDb();
+  return db.prepare('SELECT * FROM writers ORDER BY date_added DESC').all();
+}
+
+export function addWriter(name: string, notes = '') {
+  const db = getDb();
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const date_added = new Date().toISOString().slice(0, 10);
+  db.prepare('INSERT INTO writers (name, slug, date_added, notes) VALUES (?, ?, ?, ?)').run(name, slug, date_added, notes);
+}
+
+export function removeWriter(id: number) {
+  const db = getDb();
+  db.prepare('DELETE FROM writers WHERE id = ?').run(id);
+}
+
+export function getWriterNames(): string[] {
+  const db = getDb();
+  return (db.prepare('SELECT name FROM writers').all() as { name: string }[]).map(w => w.name.toLowerCase());
+}
+
+// Article images
+export function getArticleImages(articleId: string) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM article_images WHERE article_id = ? ORDER BY position').all(articleId);
+}
+
+export function insertArticleImage(img: {
+  article_id: string;
+  original_url: string;
+  ascii_art: string;
+  bw_image_path: string;
+  alt_text: string;
+  position: number;
+}) {
+  const db = getDb();
+  db.prepare(`
+    INSERT INTO article_images (article_id, original_url, ascii_art, bw_image_path, alt_text, position)
+    VALUES (@article_id, @original_url, @ascii_art, @bw_image_path, @alt_text, @position)
+  `).run(img);
+}
+
+export function clearArticleImages(articleId: string) {
+  const db = getDb();
+  db.prepare('DELETE FROM article_images WHERE article_id = ?').run(articleId);
+}
+
+// Annotations
+export function getAnnotations(articleId: string) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM annotations WHERE article_id = ? ORDER BY start_offset').all(articleId);
+}
+
+export function addAnnotation(ann: {
+  article_id: string;
+  highlighted_text: string;
+  note_text: string;
+  start_offset: number;
+  end_offset: number;
+}) {
+  const db = getDb();
+  const date_added = new Date().toISOString().slice(0, 10);
+  const result = db.prepare(`
+    INSERT INTO annotations (article_id, highlighted_text, note_text, start_offset, end_offset, date_added)
+    VALUES (@article_id, @highlighted_text, @note_text, @start_offset, @end_offset, @date_added)
+  `).run({ ...ann, date_added });
+  return result.lastInsertRowid;
+}
+
+export function updateAnnotation(id: number, note_text: string) {
+  const db = getDb();
+  db.prepare('UPDATE annotations SET note_text = ? WHERE id = ?').run(note_text, id);
+}
+
+export function deleteAnnotation(id: number) {
+  const db = getDb();
+  db.prepare('DELETE FROM annotations WHERE id = ?').run(id);
+}
+
+// Drawings
+export function getDrawing(articleId: string) {
+  const db = getDb();
+  return db.prepare('SELECT * FROM drawings WHERE article_id = ?').get(articleId);
+}
+
+export function saveDrawing(articleId: string, drawingData: string) {
+  const db = getDb();
+  const date_added = new Date().toISOString().slice(0, 10);
+  db.prepare(`
+    INSERT INTO drawings (article_id, drawing_data, date_added) VALUES (?, ?, ?)
+    ON CONFLICT(article_id) DO UPDATE SET drawing_data = excluded.drawing_data, date_added = excluded.date_added
+  `).run(articleId, drawingData, date_added);
 }
 
 export function searchArticles(query: string) {

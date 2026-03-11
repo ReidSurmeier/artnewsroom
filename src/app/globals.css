@@ -20,6 +20,12 @@
   box-sizing: border-box;
 }
 
+button {
+  color: #222;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 body {
   font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
   overflow: hidden;
@@ -284,10 +290,7 @@ a {
 }
 
 .article-content img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 1em 0;
+  display: none;
 }
 
 .article-content blockquote {
@@ -475,6 +478,518 @@ a {
   opacity: 1;
 }
 
+/* Sidebar Writers Link */
+.sidebar-writers-link {
+  font-size: 0.8rem;
+  padding: 5px 0 0 4px;
+  border-bottom: 1px solid #222;
+  cursor: pointer;
+  line-height: 1.5;
+}
+
+.sidebar-writers-link:hover {
+  background: #f5f5f5;
+}
+
+.sidebar-writers-link.active {
+  background: #000;
+  color: #fff;
+}
+
+/* Tracked Writer Dot */
+.tracked-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: #000;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.sidebar-item.active .tracked-dot {
+  background: #fff;
+}
+
+/* Writers View */
+.writers-view {
+  max-width: 500px;
+}
+
+.writers-heading {
+  font-size: 0.85rem;
+  font-weight: normal;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+}
+
+.writers-add {
+  margin-bottom: 12px;
+}
+
+.writers-input {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.8rem;
+  border: 1px solid #222;
+  border-radius: 0;
+  padding: 4px 8px;
+  outline: none;
+  width: 100%;
+  height: 28px;
+  background: white;
+}
+
+.writers-input::placeholder {
+  color: #999;
+}
+
+.writers-error {
+  font-size: 0.75rem;
+  color: #900;
+  margin-bottom: 8px;
+}
+
+.writers-list {
+  list-style: none;
+}
+
+.writers-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  padding: 5px 0 5px 4px;
+  border-bottom: 1px solid #222;
+}
+
+.writers-item:first-child {
+  border-top: 1px solid #222;
+}
+
+.writers-name {
+  flex: 1;
+}
+
+.writers-date {
+  font-size: 0.7rem;
+  opacity: 0.4;
+  margin-right: 8px;
+}
+
+.writers-remove {
+  font-size: 0.9rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  opacity: 0.4;
+  line-height: 1;
+}
+
+.writers-remove:hover {
+  opacity: 1;
+}
+
+.writers-empty {
+  font-size: 0.8rem;
+  opacity: 0.4;
+  padding: 12px 0;
+}
+
+/* ASCII Art */
+.ascii-art-container {
+  margin: 1em 0;
+}
+
+.ascii-art {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.28rem;
+  line-height: 0.38rem;
+  letter-spacing: 0;
+  overflow: hidden;
+  color: #222;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  white-space: pre;
+}
+
+.ascii-caption {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin-top: 4px;
+}
+
+/* Images Section (B&W dropdown) */
+.images-section {
+  border-top: 1px solid #222;
+  padding-top: 12px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.images-gallery {
+  margin-top: 12px;
+}
+
+.bw-image-item {
+  margin-bottom: 16px;
+}
+
+.bw-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  filter: grayscale(100%);
+}
+
+.bw-image-caption {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin-top: 4px;
+}
+
+/* ── TitleBar Mode Buttons ── */
+.titlebar-mode-btn {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.75rem;
+  background: none;
+  border: 1px solid #222;
+  padding: 1px 8px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  color: #222;
+}
+
+.titlebar-mode-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.titlebar-mode-btn.active {
+  background: #000;
+  color: #fff;
+}
+
+/* ── Menu Button + Dropdown ── */
+.titlebar-menu-container {
+  position: relative;
+}
+
+.titlebar-menu-btn {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.85rem;
+  background: none;
+  border: 1px solid #222;
+  padding: 1px 8px;
+  cursor: pointer;
+  color: #222;
+  line-height: 1;
+}
+
+.titlebar-menu-btn:hover,
+.titlebar-menu-btn.active {
+  background: #000;
+  color: #fff;
+}
+
+.titlebar-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 2px;
+  background: #fff;
+  border: 1px solid #222;
+  z-index: 100;
+  min-width: 120px;
+}
+
+.titlebar-dropdown-item {
+  display: block;
+  width: 100%;
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.75rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid #222;
+  padding: 6px 10px;
+  cursor: pointer;
+  text-align: left;
+  color: #222;
+}
+
+.titlebar-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.titlebar-dropdown-item:hover {
+  background: #000;
+  color: #fff;
+}
+
+.titlebar-dropdown-item.active {
+  font-weight: bold;
+}
+
+/* ── Annotation System ── */
+.article-reader-with-margin {
+  display: flex;
+  position: relative;
+}
+
+.article-reader-with-margin .article-reader {
+  flex: 1;
+  min-width: 0;
+  max-width: 640px;
+}
+
+.article-reader-with-margin.has-margin .article-reader {
+  max-width: none;
+  flex: 0 0 68%;
+}
+
+.annotation-margin {
+  flex: 0 0 30%;
+  padding-left: 16px;
+  position: relative;
+  min-height: 100%;
+}
+
+.annotation-note {
+  position: absolute;
+  border: 1px solid #222;
+  padding: 8px;
+  font-size: 0.75rem;
+  width: calc(100% - 16px);
+}
+
+.annotation-connector {
+  position: absolute;
+  left: -16px;
+  top: 12px;
+  width: 16px;
+  height: 0;
+  border-top: 1px solid #222;
+}
+
+.annotation-highlight-preview {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.annotation-textarea {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.75rem;
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid #222;
+  border-radius: 0;
+  padding: 4px;
+  resize: vertical;
+  outline: none;
+  line-height: 1.4;
+}
+
+.annotation-text {
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.annotation-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.annotation-save-btn,
+.annotation-cancel-btn,
+.annotation-edit-btn {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.7rem;
+  background: none;
+  border: 1px solid #222;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+
+.annotation-save-btn:hover,
+.annotation-edit-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.annotation-cancel-btn:hover {
+  background: #f5f5f5;
+}
+
+.annotation-delete-btn {
+  font-size: 0.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 3px;
+  opacity: 0.4;
+  line-height: 1;
+}
+
+.annotation-delete-btn:hover {
+  opacity: 1;
+}
+
+.annotated-highlight {
+  background: #f5f5f5;
+  border-bottom: 1px solid #ccc;
+}
+
+/* Selection popup */
+.selection-popup {
+  position: absolute;
+  z-index: 20;
+}
+
+.selection-popup-btn {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.85rem;
+  background: white;
+  border: 1px solid #222;
+  padding: 2px 8px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.selection-popup-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* ── Drawing Canvas ── */
+.draw-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 15;
+  opacity: 0;
+}
+
+.draw-canvas.has-paths {
+  opacity: 0.6;
+}
+
+.draw-canvas.active {
+  pointer-events: auto;
+  cursor: crosshair;
+  opacity: 1;
+}
+
+.draw-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 16;
+  display: flex;
+  gap: 4px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+  background: white;
+  border-bottom: 1px solid #222;
+}
+
+.draw-tool-btn {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.75rem;
+  background: none;
+  border: 1px solid #222;
+  padding: 1px 8px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+}
+
+.draw-tool-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.draw-tool-btn.active {
+  background: #000;
+  color: #fff;
+}
+
+/* ── Focus Mode ── */
+.focus-mode .sidebar {
+  display: none;
+}
+
+.focus-mode .content-area {
+  margin-left: 0;
+  margin-top: 30px;
+  height: calc(100vh - 30px);
+  display: flex;
+  justify-content: center;
+}
+
+.focus-mode .content-area::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.03);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.focus-mode .article-reader-wrapper {
+  max-width: 650px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.focus-mode .article-reader-with-margin .article-reader {
+  max-width: 650px;
+}
+
+.focus-mode .article-content {
+  font-size: 1rem;
+  line-height: 1.9;
+}
+
+.focus-mode-bar {
+  opacity: 0.6;
+}
+
+.focus-mode-bar:hover {
+  opacity: 1;
+}
+
+/* Reading progress bar */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: #000;
+  z-index: 100;
+  transition: width 0.1s linear;
+}
+
+/* Hide annotation margin in focus mode */
+.focus-mode .annotation-margin {
+  display: none;
+}
+
+.focus-mode .article-reader-with-margin.has-margin .article-reader {
+  max-width: 650px;
+  flex: none;
+}
+
 /* ── Mobile ── */
 @media (max-width: 768px) {
   body {
@@ -537,7 +1052,7 @@ a {
   }
 
   .article-content img {
-    max-width: 100%;
+    display: none;
   }
 
   .article-top-actions {
