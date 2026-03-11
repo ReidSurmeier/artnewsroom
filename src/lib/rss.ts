@@ -92,12 +92,19 @@ export async function scanFeeds(): Promise<FeedItem[]> {
     rssSources.map(async (source) => {
       try {
         const feed = await parser.parseURL(source.rss!);
-        const items: FeedItem[] = (feed.items || []).map(item => ({
-          title: item.title || 'Untitled',
-          url: item.link || '',
-          source: source.name,
-          date: item.isoDate || item.pubDate || new Date().toISOString(),
-        })).filter(item => item.url);
+        const items: FeedItem[] = (feed.items || []).map(item => {
+          let url = item.link || '';
+          // Fix feeds that emit localhost URLs (e.g. Pioneer Works)
+          if (url.startsWith('http://localhost')) {
+            url = url.replace(/^http:\/\/localhost:\d+/, source.url);
+          }
+          return {
+            title: item.title || 'Untitled',
+            url,
+            source: source.name,
+            date: item.isoDate || item.pubDate || new Date().toISOString(),
+          };
+        }).filter(item => item.url);
         return items;
       } catch (err) {
         console.warn(`[rss] Failed to fetch ${source.name}: ${(err as Error).message}`);
