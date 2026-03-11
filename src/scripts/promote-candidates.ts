@@ -13,6 +13,7 @@ import crypto from 'crypto';
 
 const turndown = new TurndownService();
 const LIMIT = parseInt(process.argv[2] || '30');
+const MAX_PER_SOURCE = parseInt(process.argv[3] || '3'); // diversity cap
 
 async function fetchContent(url: string): Promise<{ title: string; content: string; excerpt: string; author: string | null } | null> {
   try {
@@ -48,12 +49,29 @@ async function main() {
       .map(r => r.source_url)
   );
 
-  // Get top candidates
-  const candidates = db.prepare(
+  // Get top candidates — fetch more than needed so diversity filter has room
+  const allCandidates = db.prepare(
     'SELECT url, title, source, date, score FROM candidates ORDER BY score DESC LIMIT ?'
-  ).all(LIMIT) as { url: string; title: string; source: string; date: string; score: number }[];
+  ).all(LIMIT * 5) as { url: string; title: string; source: string; date: string; score: number }[];
 
-  console.log(`Promoting top ${candidates.length} candidates...\n`);
+  // Enforce source diversity: max N articles per source
+  const sourceCounts = new Map<string, number>();
+  const candidates: typeof allCandidates = [];
+  for (const c of allCandidates) {
+    if (existing.has(c.url)) continue;
+    const count = sourceCounts.get(c.source) || 0;
+    if (count >= MAX_PER_SOURCE) continue;
+    sourceCounts.set(c.source, count + 1);
+    candidates.push(c);
+    if (candidates.length >= LIMIT) break;
+  }
+
+  console.log(`Promoting ${candidates.length} candidates (max ${MAX_PER_SOURCE}/source)...\n`);
+  const sourceBreakdown = [...sourceCounts.entries()].sort((a,b) => b[1]-a[1]);
+  for (const [src, cnt] of sourceBreakdown) {
+    console.log(`  ${cnt}× ${src}`);
+  }
+  console.log();
 
   let success = 0;
   let failed = 0;
