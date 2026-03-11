@@ -20,9 +20,11 @@ interface TitleBarProps {
   onToggleDraw?: () => void;
   focusMode?: boolean;
   onToggleFocus?: () => void;
+  showWriters?: boolean;
+  onShowWriters?: () => void;
 }
 
-export default function TitleBar({ articles, onFilter, showArchive, onToggleArchive, articleSelected, drawMode, onToggleDraw, focusMode, onToggleFocus }: TitleBarProps) {
+export default function TitleBar({ articles, onFilter, showArchive, onToggleArchive, articleSelected, drawMode, onToggleDraw, focusMode, onToggleFocus, showWriters, onShowWriters }: TitleBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -76,6 +78,12 @@ export default function TitleBar({ articles, onFilter, showArchive, onToggleArch
                       </button>
                     </>
                   )}
+                  <button
+                    className={`titlebar-dropdown-item${showWriters ? ' active' : ''}`}
+                    onClick={() => { onShowWriters?.(); setMenuOpen(false); }}
+                  >
+                    Writers
+                  </button>
                   <button
                     className={`titlebar-dropdown-item${showArchive ? ' active' : ''}`}
                     onClick={() => { onToggleArchive(); setMenuOpen(false); }}

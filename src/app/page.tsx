@@ -168,6 +168,8 @@ export default function Home() {
         onToggleDraw={toggleDraw}
         focusMode={focusMode}
         onToggleFocus={toggleFocus}
+        showWriters={showWriters}
+        onShowWriters={handleShowWriters}
       />
       {!focusMode && (
         <Sidebar
@@ -193,12 +195,7 @@ export default function Home() {
             drawMode={drawMode}
             focusMode={focusMode}
           />
-        ) : (
-          <ArticleFeed
-            articles={filteredArticles}
-            onSelect={selectArticle}
-          />
-        )}
+        ) : null}
       </main>
     </div>
   );
