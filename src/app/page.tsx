@@ -108,8 +108,9 @@ export default function Home() {
         articles={filteredArticles}
         selectedId={selectedId}
         onSelect={selectArticle}
+        hidden={!!selectedId}
       />
-      <main className="content-area">
+      <main className={`content-area${selectedId ? ' article-open' : ''}`}>
         {selectedId ? (
           <ArticleReader
             articleId={selectedId}

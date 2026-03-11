@@ -463,3 +463,123 @@ a {
 .back-btn:hover {
   opacity: 1;
 }
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  body {
+    overflow: auto;
+  }
+
+  .title-bar {
+    height: 40px;
+    padding: 6px 10px;
+  }
+
+  .title-bar h1 {
+    font-size: 0.9rem;
+  }
+
+  .title-bar .search-input {
+    width: 120px;
+    height: 26px;
+    font-size: 0.75rem;
+  }
+
+  .sidebar {
+    position: relative;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    margin-top: 40px;
+    border-right: none;
+    overflow-y: visible;
+  }
+
+  .sidebar.hidden-mobile {
+    display: none;
+  }
+
+  .content-area {
+    margin-left: 0;
+    margin-top: 0;
+    height: auto;
+    overflow-y: visible;
+    padding: 12px 14px;
+  }
+
+  /* When an article is selected, hide sidebar and show content full-width */
+  .content-area.article-open {
+    margin-top: 40px;
+  }
+
+  .article-reader-wrapper .article-reader {
+    max-width: 100%;
+  }
+
+  .article-title {
+    font-size: 1.15rem;
+  }
+
+  .article-content {
+    font-size: 0.88rem;
+    line-height: 1.65;
+  }
+
+  .article-content img {
+    max-width: 100%;
+  }
+
+  .article-top-actions {
+    margin-bottom: 8px;
+  }
+
+  .back-btn {
+    margin-bottom: 8px;
+  }
+
+  /* Feed items */
+  .feed-item {
+    padding: 10px 0;
+  }
+
+  .feed-item-title {
+    font-size: 1rem;
+  }
+
+  /* Side panel goes full-width on mobile */
+  .side-panel {
+    width: 100%;
+    left: 0;
+  }
+
+  .panel-open .side-panel-tab {
+    right: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
+    writing-mode: horizontal-tb;
+    width: 100%;
+    text-align: center;
+    border: 1px solid #222;
+    border-bottom: none;
+  }
+
+  .side-panel-tab {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    transform: none;
+    writing-mode: horizontal-tb;
+    width: 60px;
+    text-align: center;
+    border: 1px solid #222;
+    border-right: none;
+    border-bottom: none;
+  }
+
+  .archive-toggle-btn {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+  }
+}

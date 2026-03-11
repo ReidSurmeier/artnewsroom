@@ -13,11 +13,12 @@ interface SidebarProps {
   articles: ArticleSummary[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  hidden?: boolean;
 }
 
-export default function Sidebar({ articles, selectedId, onSelect }: SidebarProps) {
+export default function Sidebar({ articles, selectedId, onSelect, hidden }: SidebarProps) {
   return (
-    <nav className="sidebar">
+    <nav className={`sidebar${hidden ? ' hidden-mobile' : ''}`}>
       <ul>
         {articles.map(article => (
           <li
