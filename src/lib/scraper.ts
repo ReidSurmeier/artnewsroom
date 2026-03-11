@@ -342,9 +342,9 @@ function sanitizeForWinAnsi(text: string): string {
     // Smart quotes → straight quotes
     .replace(/[\u2018\u2019\u201A]/g, "'")
     .replace(/[\u201C\u201D\u201E]/g, '"')
-    // Dashes
+    // Dashes — use hyphen-minus (WinAnsi safe)
     .replace(/\u2013/g, '-')  // en-dash
-    .replace(/\u2014/g, '--') // em-dash
+    .replace(/\u2014/g, '-')  // em-dash → single dash (cleaner than --)
     // Ellipsis
     .replace(/\u2026/g, '...')
     // Arrows
@@ -367,79 +367,121 @@ export async function generatePdf(markdown: string, outputPath: string): Promise
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.TimesRoman);
   const boldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+  const italicFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
 
   const fontSize = 11;
+  const titleFontSize = 16;
   const lineHeight = 16;
+  const titleLineHeight = 22;
   const margin = 50;
+  const bottomMargin = 72; // Keep text well above page bottom
   const pageWidth = 612; // Letter
   const pageHeight = 792;
   const maxWidth = pageWidth - margin * 2;
 
-  // Strip markdown to plain text lines and sanitize for WinAnsi encoding
+  // Clean up markdown artifacts while preserving original text
   const plainText = sanitizeForWinAnsi(markdown
-    .replace(/^#{1,6}\s+(.+)$/gm, '\n$1\n')
+    // Headers → plain text with spacing
+    .replace(/^#{1,6}\s+(.+)$/gm, '$1')
+    // Remove escaped brackets from Readability output
+    .replace(/\\\[/g, '[').replace(/\\\]/g, ']')
+    // Bold markers
     .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/\*(.+?)\*/g, '$1')
+    // Bold markers (double underscores/asterisks)
+    .replace(/__([^_\n]+)__/g, '$1')
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
+    // Italic markers (single underscores/asterisks)
+    .replace(/_([^_\n]+)_/g, '$1')
+    .replace(/\*([^*\n]+)\*/g, '$1')
+    // Strip remaining formatting underscores at word boundaries (catches mismatched like __text_)
+    .replace(/(?:^|(?<=\s))_{1,3}/gm, '').replace(/_{1,3}(?=[\s,.:;!?\)]|$)/gm, '')
+    // Links → just the link text
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove image tags entirely
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, '')
-    .replace(/^[-*+]\s+/gm, '* ')
+    // Bullet lists
+    .replace(/^[-*+]\s+/gm, '  * ')
+    // Blockquotes
     .replace(/^>\s+/gm, '  ')
+    // Clean up double hyphens to single dash
+    .replace(/ -- /g, ' - ')
+    // Collapse 3+ consecutive blank lines into 1
+    .replace(/\n{3,}/g, '\n\n')
     .trim());
 
-  const lines: string[] = [];
-  for (const paragraph of plainText.split('\n')) {
+  // Split into lines, word-wrapping each paragraph
+  const lines: { text: string; isTitle: boolean }[] = [];
+  const paragraphs = plainText.split('\n');
+  const titleEndIndex = Math.min(3, paragraphs.length); // First few lines are title/byline
+
+  for (let i = 0; i < paragraphs.length; i++) {
+    const paragraph = paragraphs[i];
     if (paragraph.trim() === '') {
-      lines.push('');
+      // Collapse consecutive blank lines
+      if (lines.length === 0 || lines[lines.length - 1].text !== '') {
+        lines.push({ text: '', isTitle: false });
+      }
       continue;
     }
+    const isTitle = i < titleEndIndex && i === 0; // Only first line is title
+    const currentFont = isTitle ? boldFont : font;
+    const currentFontSize = isTitle ? titleFontSize : fontSize;
+    const currentMaxWidth = maxWidth;
+
     // Word-wrap
     const words = paragraph.split(/\s+/);
     let currentLine = '';
     for (const word of words) {
       const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const width = font.widthOfTextAtSize(testLine, fontSize);
-      if (width > maxWidth && currentLine) {
-        lines.push(currentLine);
+      const width = currentFont.widthOfTextAtSize(testLine, currentFontSize);
+      if (width > currentMaxWidth && currentLine) {
+        lines.push({ text: currentLine, isTitle });
         currentLine = word;
       } else {
         currentLine = testLine;
       }
     }
-    if (currentLine) lines.push(currentLine);
+    if (currentLine) lines.push({ text: currentLine, isTitle });
   }
 
   let page = pdfDoc.addPage([pageWidth, pageHeight]);
   let y = pageHeight - margin;
 
   for (const line of lines) {
-    if (y < margin) {
+    const currentLineHeight = line.isTitle ? titleLineHeight : lineHeight;
+    const currentFont = line.isTitle ? boldFont : font;
+    const currentFontSize = line.isTitle ? titleFontSize : fontSize;
+
+    // Check bottom margin BEFORE drawing — leave room for at least 2 more lines
+    // to avoid orphan lines at the bottom
+    if (y < bottomMargin + lineHeight) {
       page = pdfDoc.addPage([pageWidth, pageHeight]);
       y = pageHeight - margin;
     }
-    if (line === '') {
-      y -= lineHeight;
+    if (line.text === '') {
+      y -= lineHeight * 0.6; // Smaller paragraph gap
       continue;
     }
     try {
-      page.drawText(line, {
+      page.drawText(line.text, {
         x: margin,
         y,
-        size: fontSize,
-        font,
+        size: currentFontSize,
+        font: currentFont,
         color: rgb(0, 0, 0),
       });
     } catch {
       // If encoding still fails, strip to pure ASCII
-      const safeLine = line.replace(/[^\x20-\x7E]/g, '');
+      const safeLine = line.text.replace(/[^\x20-\x7E]/g, '');
       page.drawText(safeLine, {
         x: margin,
         y,
-        size: fontSize,
-        font,
+        size: currentFontSize,
+        font: currentFont,
         color: rgb(0, 0, 0),
       });
     }
-    y -= lineHeight;
+    y -= currentLineHeight;
   }
 
   const pdfBytes = await pdfDoc.save();
