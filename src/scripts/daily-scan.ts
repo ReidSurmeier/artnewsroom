@@ -12,6 +12,7 @@
 
 import { scanFeeds, type FeedItem } from '../lib/rss';
 import { getDb } from '../lib/db';
+import { rankItems } from '../lib/taste-scorer';
 
 async function main() {
   const startTime = Date.now();
@@ -67,6 +68,19 @@ async function main() {
     }
   }
 
+  // Score candidates against taste profile
+  console.log(`\n── Scoring against taste profile ──`);
+  const scored = rankItems(newItems);
+
+  // Show top 15 highest-scoring articles
+  console.log(`\nTop 15 matches:`);
+  for (const item of scored.slice(0, 15)) {
+    const date = new Date(item.date).toISOString().split('T')[0];
+    const breakdown = `d:${item.scoreBreakdown.domain} k:${item.scoreBreakdown.keywords} s:${item.scoreBreakdown.source} r:${item.scoreBreakdown.recency}`;
+    console.log(`  [${item.score.toString().padStart(2)}] ${item.source} — ${item.title.slice(0, 70)}`);
+    console.log(`       ${date}  (${breakdown})`);
+  }
+
   // Store candidates in a simple candidates table for later AI curation
   db.exec(`
     CREATE TABLE IF NOT EXISTS candidates (
@@ -74,29 +88,37 @@ async function main() {
       title TEXT NOT NULL,
       source TEXT NOT NULL,
       date TEXT NOT NULL,
+      score INTEGER DEFAULT 0,
+      score_breakdown TEXT,
       scanned_at TEXT NOT NULL
     )
   `);
 
+  // Add score column if it doesn't exist (migration for existing DBs)
+  try { db.exec(`ALTER TABLE candidates ADD COLUMN score INTEGER DEFAULT 0`); } catch {}
+  try { db.exec(`ALTER TABLE candidates ADD COLUMN score_breakdown TEXT`); } catch {}
+
   const insertCandidate = db.prepare(`
-    INSERT OR IGNORE INTO candidates (url, title, source, date, scanned_at)
-    VALUES (@url, @title, @source, @date, @scanned_at)
+    INSERT OR IGNORE INTO candidates (url, title, source, date, score, score_breakdown, scanned_at)
+    VALUES (@url, @title, @source, @date, @score, @score_breakdown, @scanned_at)
   `);
 
   const scannedAt = new Date().toISOString();
-  const insertMany = db.transaction((items: FeedItem[]) => {
+  const insertMany = db.transaction((items: typeof scored) => {
     for (const item of items) {
       insertCandidate.run({
         url: item.url,
         title: item.title,
         source: item.source,
         date: item.date,
+        score: item.score,
+        score_breakdown: JSON.stringify(item.scoreBreakdown),
         scanned_at: scannedAt,
       });
     }
   });
 
-  insertMany(newItems);
+  insertMany(scored);
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(`\n── Scan complete ──`);
