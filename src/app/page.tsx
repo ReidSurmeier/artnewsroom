@@ -6,6 +6,7 @@ import Sidebar from '@/components/Sidebar';
 import ArticleFeed from '@/components/ArticleFeed';
 import ArticleReader from '@/components/ArticleReader';
 import WritersView from '@/components/WritersView';
+import AboutPage from '@/components/AboutPage';
 
 interface ArticleSummary {
   id: string;
@@ -25,6 +26,7 @@ export default function Home() {
   const [filterIds, setFilterIds] = useState<string[] | null>(null);
   const [showArchive, setShowArchive] = useState(false);
   const [showWriters, setShowWriters] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [trackedWriters, setTrackedWriters] = useState<string[]>([]);
 
   // New mode states
@@ -144,6 +146,13 @@ export default function Home() {
 
   const handleShowWriters = () => {
     setShowWriters(true);
+    setShowAbout(false);
+    setSelectedId(null);
+  };
+
+  const handleShowAbout = () => {
+    setShowAbout(true);
+    setShowWriters(false);
     setSelectedId(null);
   };
 
@@ -170,6 +179,8 @@ export default function Home() {
         onToggleFocus={toggleFocus}
         showWriters={showWriters}
         onShowWriters={handleShowWriters}
+        showAbout={showAbout}
+        onShowAbout={handleShowAbout}
       />
       {!focusMode && (
         <Sidebar
@@ -183,7 +194,9 @@ export default function Home() {
         />
       )}
       <main className={`content-area${selectedId ? ' article-open' : ''}${focusMode ? ' focus-content' : ''}`}>
-        {showWriters ? (
+        {showAbout ? (
+          <AboutPage onBack={() => setShowAbout(false)} />
+        ) : showWriters ? (
           <WritersView />
         ) : selectedId ? (
           <ArticleReader
