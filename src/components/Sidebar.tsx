@@ -40,12 +40,7 @@ export default function Sidebar({ articles, selectedId, onSelect, hidden, tracke
 
   return (
     <nav className={`sidebar${hidden ? ' hidden-mobile' : ''}`}>
-      <div
-        className={`sidebar-writers-link${showingWriters ? ' active' : ''}`}
-        onClick={onShowWriters}
-      >
-        WRITERS
-      </div>
+
       <ul>
         {top3.map(article => (
           <li
