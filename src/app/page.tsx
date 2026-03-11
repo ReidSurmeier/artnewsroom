@@ -13,22 +13,36 @@ interface ArticleSummary {
   date_added: string;
   excerpt: string;
   is_read: number;
+  is_archived: number;
 }
 
 export default function Home() {
   const [articles, setArticles] = useState<ArticleSummary[]>([]);
+  const [archivedArticles, setArchivedArticles] = useState<ArticleSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterIds, setFilterIds] = useState<string[] | null>(null);
+  const [showArchive, setShowArchive] = useState(false);
+
+  const loadArticles = () => {
+    fetch('/api/articles').then(r => r.json()).then(setArticles);
+  };
+
+  const loadArchived = () => {
+    fetch('/api/articles?archived=true').then(r => r.json()).then(setArchivedArticles);
+  };
 
   useEffect(() => {
-    fetch('/api/articles')
-      .then(r => r.json())
-      .then(setArticles);
+    loadArticles();
   }, []);
 
+  useEffect(() => {
+    if (showArchive) loadArchived();
+  }, [showArchive]);
+
+  const currentArticles = showArchive ? archivedArticles : articles;
   const filteredArticles = filterIds
-    ? articles.filter(a => filterIds.includes(a.id))
-    : articles;
+    ? currentArticles.filter(a => filterIds.includes(a.id))
+    : currentArticles;
 
   const handleFilter = useCallback((ids: string[] | null) => {
     setFilterIds(ids);
@@ -36,7 +50,7 @@ export default function Home() {
 
   const selectArticle = async (id: string) => {
     setSelectedId(id);
-    const article = articles.find(a => a.id === id);
+    const article = currentArticles.find(a => a.id === id);
     if (article && !article.is_read) {
       await fetch('/api/read', {
         method: 'POST',
@@ -61,9 +75,35 @@ export default function Home() {
     });
   };
 
+  const handleArchive = async (articleId: string, archived: boolean) => {
+    await fetch('/api/archive', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ articleId, archived }),
+    });
+    // Refresh both lists
+    loadArticles();
+    loadArchived();
+    // Go back to list after archiving
+    setSelectedId(null);
+  };
+
+  const toggleArchive = () => {
+    setShowArchive(prev => !prev);
+    setSelectedId(null);
+    setFilterIds(null);
+  };
+
+  const selectedArticle = currentArticles.find(a => a.id === selectedId);
+
   return (
     <>
-      <TitleBar articles={articles} onFilter={handleFilter} />
+      <TitleBar
+        articles={currentArticles}
+        onFilter={handleFilter}
+        showArchive={showArchive}
+        onToggleArchive={toggleArchive}
+      />
       <Sidebar
         articles={filteredArticles}
         selectedId={selectedId}
@@ -73,8 +113,10 @@ export default function Home() {
         {selectedId ? (
           <ArticleReader
             articleId={selectedId}
+            isArchived={!!selectedArticle?.is_archived}
             onBack={goBack}
             onSaveNotes={saveNotes}
+            onArchive={handleArchive}
           />
         ) : (
           <ArticleFeed

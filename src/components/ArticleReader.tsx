@@ -28,11 +28,13 @@ interface Reference {
 
 interface ArticleReaderProps {
   articleId: string;
+  isArchived?: boolean;
   onBack: () => void;
   onSaveNotes: (articleId: string, notes: string) => Promise<void>;
+  onArchive: (articleId: string, archived: boolean) => Promise<void>;
 }
 
-export default function ArticleReader({ articleId, onBack, onSaveNotes }: ArticleReaderProps) {
+export default function ArticleReader({ articleId, isArchived, onBack, onSaveNotes, onArchive }: ArticleReaderProps) {
   const [article, setArticle] = useState<ArticleFull | null>(null);
   const [references, setReferences] = useState<Reference[]>([]);
   const [notes, setNotes] = useState('');
@@ -74,7 +76,15 @@ export default function ArticleReader({ articleId, onBack, onSaveNotes }: Articl
   return (
     <div className={`article-reader-wrapper${panelOpen ? ' panel-open' : ''}`}>
       <div className="article-reader">
-        <button className="back-btn" onClick={onBack}>&larr; Back</button>
+        <div className="article-top-actions">
+          <button className="back-btn" onClick={onBack}>&larr; Back</button>
+          <button
+            className={`archive-btn${isArchived ? ' archived' : ''}`}
+            onClick={() => onArchive(articleId, !isArchived)}
+          >
+            {isArchived ? '↩ Unarchive' : '↓ Archive'}
+          </button>
+        </div>
 
         <h1 className="article-title">{article.title}</h1>
         <div className="article-meta">

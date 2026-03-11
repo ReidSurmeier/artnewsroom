@@ -53,16 +53,45 @@ function initDb(db: Database.Database) {
     CREATE INDEX IF NOT EXISTS idx_references_date ON references_table(date_added DESC);
   `);
 
+  // Migration: add is_archived column if not present
+  try { db.exec('ALTER TABLE articles ADD COLUMN is_archived INTEGER DEFAULT 0'); } catch {}
+
 }
 
 // Helper functions
-export function getArticles() {
+export function getArticles(includeArchived = false) {
+  const db = getDb();
+  if (includeArchived) {
+    return db.prepare(`
+      SELECT id, title, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+        CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes
+      FROM articles ORDER BY date_added DESC
+    `).all();
+  }
+  return db.prepare(`
+    SELECT id, title, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+      CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes
+    FROM articles WHERE COALESCE(is_archived, 0) = 0 ORDER BY date_added DESC
+  `).all();
+}
+
+export function getArchivedArticles() {
   const db = getDb();
   return db.prepare(`
-    SELECT id, title, source, date_added, excerpt, is_read,
+    SELECT id, title, source, date_added, excerpt, is_read, 1 as is_archived,
       CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes
-    FROM articles ORDER BY date_added DESC
+    FROM articles WHERE is_archived = 1 ORDER BY date_added DESC
   `).all();
+}
+
+export function archiveArticle(id: string) {
+  const db = getDb();
+  db.prepare('UPDATE articles SET is_archived = 1 WHERE id = ?').run(id);
+}
+
+export function unarchiveArticle(id: string) {
+  const db = getDb();
+  db.prepare('UPDATE articles SET is_archived = 0 WHERE id = ?').run(id);
 }
 
 export function getArticle(id: string) {

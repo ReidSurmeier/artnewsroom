@@ -12,13 +12,23 @@ interface ArticleSummary {
 interface TitleBarProps {
   articles: ArticleSummary[];
   onFilter: (ids: string[] | null) => void;
+  showArchive: boolean;
+  onToggleArchive: () => void;
 }
 
-export default function TitleBar({ articles, onFilter }: TitleBarProps) {
+export default function TitleBar({ articles, onFilter, showArchive, onToggleArchive }: TitleBarProps) {
   return (
     <header className="title-bar">
       <h1>NEWSROOM</h1>
-      <SearchBar articles={articles} onFilter={onFilter} />
+      <div className="title-bar-actions">
+        <button
+          className={`archive-toggle-btn${showArchive ? ' active' : ''}`}
+          onClick={onToggleArchive}
+        >
+          {showArchive ? '← Feed' : 'Archive'}
+        </button>
+        <SearchBar articles={articles} onFilter={onFilter} />
+      </div>
     </header>
   );
 }
