@@ -18,7 +18,7 @@ export interface Source {
 
 export const SOURCES: Source[] = [
   // Tier 1
-  { name: 'Spike Art Magazine', url: 'https://www.spikeartmagazine.com', rss: 'https://spikeartmagazine.com/?feed=rss2', tier: 1 },
+  { name: 'Spike Art Magazine', url: 'https://www.spikeartmagazine.com', tier: 1 }, // browser-only (no RSS since Next.js migration)
   { name: 'The New Yorker', url: 'https://www.newyorker.com', rss: 'https://www.newyorker.com/feed/culture', tier: 1 },
   { name: 'NYT Arts', url: 'https://www.nytimes.com', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml', tier: 1 },
   { name: 'NYT T Magazine', url: 'https://www.nytimes.com', rss: 'https://rss.nytimes.com/services/xml/rss/nyt/tmagazine.xml', tier: 1 },
@@ -27,11 +27,11 @@ export const SOURCES: Source[] = [
   { name: 'Dazed', url: 'https://www.dazeddigital.com', rss: 'https://www.dazeddigital.com/rss', tier: 1 },
   { name: 'Hacker News', url: 'https://news.ycombinator.com', rss: 'https://news.ycombinator.com/rss', tier: 1 },
   { name: "Harper's Magazine", url: 'https://harpers.org', rss: 'https://harpers.org/feed/', tier: 1 },
-  { name: 'Yale Review', url: 'https://yalereview.org', rss: 'https://theyalereview.org/feed', tier: 1 },
+  { name: 'Yale Review', url: 'https://yalereview.org', tier: 1 }, // browser-only (feed returns HTML)
   { name: 'The Creative Independent', url: 'https://thecreativeindependent.com', rss: 'https://thecreativeindependent.com/feed.xml', tier: 1 },
   { name: 'Artforum', url: 'https://www.artforum.com', rss: 'https://www.artforum.com/rss', tier: 1 },
   { name: 'n+1', url: 'https://www.nplusonemag.com', rss: 'https://www.nplusonemag.com/feed/', tier: 1 },
-  { name: 'Brooklyn Rail', url: 'https://brooklynrail.org', rss: 'https://brooklynrail.org/rss', tier: 1 },
+  { name: 'Brooklyn Rail', url: 'https://brooklynrail.org', tier: 1 }, // browser-only (Directus CMS, no RSS feed)
   { name: 'Artnet News', url: 'https://news.artnet.com', rss: 'https://news.artnet.com/feed', tier: 1 },
   { name: 'Gagosian Quarterly', url: 'https://gagosian.com', tier: 1 }, // browser-only
   { name: 'Ares Luna', url: 'https://aresluna.org', tier: 1 }, // browser-only
@@ -47,7 +47,7 @@ export const SOURCES: Source[] = [
   { name: 'Flash Art', url: 'https://flash---art.com', rss: 'https://flash---art.com/feed/', tier: 2 },
   { name: 'Kunstkritikk', url: 'https://kunstkritikk.com', rss: 'https://kunstkritikk.com/feed/', tier: 2 },
   { name: 'Sternberg Press', url: 'https://www.sternberg-press.com', tier: 2 }, // browser-only
-  { name: 'Pioneer Works', url: 'https://pioneerworks.org', rss: 'https://pioneerworks.org/feed', tier: 2 },
+  { name: 'Pioneer Works', url: 'https://pioneerworks.org', rss: 'https://pioneerworks.org/feed.xml', tier: 2 },
   { name: 'The Drift', url: 'https://www.thedriftmag.com', rss: 'https://www.thedriftmag.com/feed/', tier: 2 },
   { name: 'Right Click Save', url: 'https://rightclicksave.com', tier: 2 }, // browser-only
   { name: 'Syntax', url: 'https://syntaxmag.online', tier: 2 }, // browser-only
