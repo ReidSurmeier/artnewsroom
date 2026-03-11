@@ -101,7 +101,7 @@ export default function ArticleReader({ articleId, isArchived, onBack, onSaveNot
         />
 
         {article.pdf_path && (
-          <a href={article.pdf_path} className="pdf-btn" download>
+          <a href={`/api/articles/${article.id}/pdf`} className="pdf-btn" download>
             Download PDF
           </a>
         )}

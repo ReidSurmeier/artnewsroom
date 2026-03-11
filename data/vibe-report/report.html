@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.55;
+    color: #000;
+    background: #fff;
+  }
+
+  .page {
+    width: 8.5in;
+    min-height: 11in;
+    padding: 0.75in 0.9in;
+    page-break-after: always;
+    position: relative;
+  }
+
+  .page:last-child {
+    page-break-after: avoid;
+  }
+
+  /* Cover */
+  .cover {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.2in 1in;
+    min-height: 11in;
+  }
+
+  .cover-top {
+    margin-top: 1.5in;
+  }
+
+  .cover h1 {
+    font-size: 52pt;
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 0.95;
+    text-transform: uppercase;
+    margin-bottom: 0.3in;
+  }
+
+  .cover .subtitle {
+    font-size: 14pt;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 0.15in;
+  }
+
+  .cover .date {
+    font-size: 10pt;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.35;
+  }
+
+  .cover-bottom {
+    font-size: 8.5pt;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    opacity: 0.3;
+  }
+
+  h2 {
+    font-size: 24pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.35in;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.15in;
+    opacity: 0.5;
+  }
+
+  p {
+    margin-bottom: 0.18in;
+    font-weight: 300;
+  }
+
+  .pull-quote {
+    font-size: 18pt;
+    font-weight: 300;
+    line-height: 1.35;
+    margin: 0.5in 0;
+    padding-left: 0.3in;
+    border-left: 2px solid #000;
+    letter-spacing: -0.01em;
+  }
+
+  .callout {
+    font-size: 9pt;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: #000;
+    color: #fff;
+    display: inline-block;
+    padding: 4px 12px;
+    margin: 0.2in 0;
+  }
+
+  .caption {
+    font-size: 7.5pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-top: 6px;
+    margin-bottom: 0.35in;
+  }
+
+  .img-full {
+    width: 100%;
+    display: block;
+    margin-top: 0.1in;
+  }
+
+  .img-half {
+    width: 65%;
+    display: block;
+    margin-top: 0.1in;
+  }
+
+  .term {
+    font-size: 13pt;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  .term-def {
+    font-size: 10pt;
+    font-weight: 300;
+    margin-left: 0.25in;
+    margin-bottom: 0.2in;
+    opacity: 0.7;
+  }
+
+  .footer-mark {
+    position: absolute;
+    bottom: 0.6in;
+    right: 1in;
+    font-size: 7pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0.2;
+  }
+
+  .num {
+    font-size: 72pt;
+    font-weight: 100;
+    opacity: 0.08;
+    line-height: 1;
+    margin-bottom: -0.1in;
+  }
+
+  .spacer { height: 0.4in; }
+  .spacer-sm { height: 0.2in; }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<div class="page cover">
+  <div class="cover-top">
+    <div class="subtitle">Vibe Report №1</div>
+    <h1>The Grand<br>Optimization</h1>
+    <div class="date">March 2026</div>
+  </div>
+  <div class="cover-bottom">
+    On optimization and the maker movement and vibe coding and slop.<br>
+    YouTube thumbnails. How did we get here.
+  </div>
+</div>
+
+<!-- PAGE 1 -->
+<div class="page">
+  <div class="num">01</div>
+  <h2>Ahistorism</h2>
+
+  <img class="img-full" src="img-rafman-paris.jpg" alt="LAN party">
+  <div class="caption">Fig. 1 — Communion through bandwidth, c. 2003.</div>
+
+  <p>It's strange to believe the origins of the internet. John Rafman compared the early internet to medieval Paris, a city that wasn't very modern in any way. It was extremely difficult to cross, especially for militaries. No defined streets. It was an enclave of separate parts.</p>
+
+  <p>The early internet was disorganized, non-hierarchical web networks of individual sites that closely resembled this medieval organization. Blogs flourished. Individual separate websites were not under any optimization. People celebrated their individuality, creating their own websites and making their own tools.</p>
+
+  <div class="pull-quote">What happened to Paris, and what happened to the internet, was the construction of the "grand boulevards."</div>
+
+  <p>The Haussmann renovation of Paris demolished medieval neighborhoods, deemed overcrowded and unhealthy, constructed large streets through the city that made Paris very carriage- and military-friendly.</p>
+
+  <p>Most similarly, the early internet was full of piracy, uncontrollable. Napster, other file-sharing tools. Corporations and interest in tapping into new advertising strategies pushed for the construction of the internet equivalent of the Haussmann renovation, which was the creation of platforms.</p>
+
+  <div class="footer-mark">The Grand Optimization — 01</div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+  <div class="num">02</div>
+  <h2>The Middle Man</h2>
+
+  <img class="img-half" src="img-screenshot-1.png" alt="Top websites rankings">
+  <div class="caption">Fig. 2 — The leaderboard that never moves.</div>
+
+  <p>Now, nobody really goes to websites anymore. Everyone stays on their feeds. Instagram, TikTok, Facebook, Twitter, and now ChatGPT.</p>
+
+  <p>The platform economy made it much easier to capitalize and optimize for advertising dollars, even though a lot of these early platforms failed to make much of a profit when they started.</p>
+
+  <p>The grand consolidation. People moving away from this web into the funnel of tightly controlled platforms — "the middle man" — an intermediary between creators and consumers.</p>
+
+  <h3>The Start of Optimization</h3>
+
+  <p>In the early days of platforms like YouTube, content creation thrived and the need to optimize wasn't so enforced. People were informal, uploading casually. But as time went on, and more and more content was available, platforms needed to filter and sort content. It was becoming overbearing.</p>
+
+  <p>With the influence of advertising on sites, the longer you kept users, the more ads you could serve them. This caused a change in objective for a lot of these platforms. To keep users on the site as long as possible.</p>
+
+  <div class="callout">This was the start of optimization.</div>
+
+  <div class="spacer-sm"></div>
+
+  <p>Intermediaries are part of the solution to the age-old problem of connecting people with one another — but they become part of the problem when they grow so powerful that they can act as gatekeepers who can usurp the relationship between the two sides of their markets.</p>
+
+  <div class="footer-mark">The Grand Optimization — 02</div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page">
+  <div class="num">03</div>
+  <h2>The Approval<br>Matrix</h2>
+
+  <p>The internet is becoming increasingly weird. It once was a place that fostered and housed really cool work and artistry, and now feels extremely hollow and optimized.</p>
+
+  <p>Every time I go on YouTube the thumbnails keep getting more colorful, larger faces, more emotional expressions. I was spending time researching AI tools and I get these thirty-something grown-ass men making these weird contorted faces talking about how they just learned how to give AI some memory optimization or how to control its scripting behavior.</p>
+
+  <p>These open-mouthed weird expressions. AI-generated backgrounds.</p>
+
+  <div class="spacer-sm"></div>
+
+  <img class="img-full" src="img-screenshot-2.png" alt="AI content pipeline thumbnails">
+  <div class="caption">Fig. 3 — The $5/month content singularity.</div>
+
+  <div class="spacer-sm"></div>
+
+  <p>As someone who grew up with Instagram — pre-2016 Instagram without algorithms — it was a very fun place. You could follow who you wanted, then those posts would show up on your feed. Once you reached the end, it wouldn't show you any more. There was no infinite scroll. Explore page was pretty awful and just random content. There were no Reels, no suggested content. Your posts would be snapshots, informal, non-curated. It wasn't so thought out.</p>
+
+  <p>The middle man is now in control. Platforms have become so large and looming that what Cory Doctorow's book calls enshittification has taken full effect. Platforms put businesses and users against each other, everyone optimizing and scrambling for attention and views that the content has bent itself into a misshapen, malformed picture, video.</p>
+
+  <div class="footer-mark">The Grand Optimization — 03</div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page">
+  <div class="num">04</div>
+  <h2>Same Angles,<br>Same Approaches</h2>
+
+  <p>Started wondering why everyone posts the same types of photos, same angles, same approaches. Nobody really wants to stand out. Being weird or having an unconventional take doesn't work in this sort of approval-matrix social media. Everyone is now playing this new status game dictated by what more famous people are doing, what trends they are setting, what is beautiful, etc.</p>
+
+  <p>This has always happened but not at this scale, not in such a regimented and systematic way.</p>
+
+  <div class="spacer"></div>
+
+  <img class="img-full" src="img-arena-1.jpg" alt="Cybertruck on fire">
+  <div class="caption">Fig. 4 — The aesthetic of disruption meeting the physics of consequences.</div>
+
+  <div class="spacer"></div>
+
+  <h3>Vibe Coding & Slop</h3>
+
+  <p>Reading Cory Doctorow's enshittification chapter on that...</p>
+
+  <p>The maker movement. Vibe coding. You don't need to understand what you're building, you just describe it and the machine builds it. The tools got so easy that the understanding became optional. The result is slop. Not garbage — garbage implies intention. Slop is what happens when production has no friction and distribution has no cost.</p>
+
+  <div class="pull-quote">How did we get here?</div>
+
+  <p>Each individual optimization was reasonable. Each individual compromise was small. The accumulation is the catastrophe.</p>
+
+  <div class="footer-mark">The Grand Optimization — 04</div>
+</div>
+
+<!-- PAGE 5 — GLOSSARY -->
+<div class="page">
+  <div class="num">05</div>
+  <h2>Glossary of<br>Decline</h2>
+
+  <div class="spacer"></div>
+
+  <div class="term">ENSHITTIFICATION</div>
+  <div class="term-def">Cory Doctorow. The platform lifecycle: be good to users, then abuse users to make things better for business customers, then abuse those business customers to claw back value for the platform itself.</div>
+
+  <div class="term">SLOP</div>
+  <div class="term-def">AI-generated or AI-assisted content produced without editorial intent. Distinguished from spam by its lack of malice. It doesn't want to trick you. It doesn't want anything.</div>
+
+  <div class="term">VIBE CODING</div>
+  <div class="term-def">Building software through description rather than understanding. Works until it doesn't, at which point no one knows why.</div>
+
+  <div class="term">THE APPROVAL MATRIX</div>
+  <div class="term-def">Everyone posts the same photo because the same photo works.</div>
+
+  <div class="term">THE GRAND BOULEVARDS</div>
+  <div class="term-def">Platforms as infrastructure projects that replaced the medieval web. More efficient, more legible, more controllable. Less alive.</div>
+
+  <div class="term">THUMBNAIL CONVERGENCE</div>
+  <div class="term-def">The evolutionary endpoint of click-through-rate optimization. All thumbnails become the same thumbnail: big face, bright colors, open mouth, performed emotion.</div>
+
+  <div class="spacer"></div>
+
+  <div style="border-top: 1px solid #000; padding-top: 0.15in; font-size: 8pt; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.3;">
+    Vibe Report №1 — March 2026
+  </div>
+
+  <div class="footer-mark">The Grand Optimization — 05</div>
+</div>
+
+</body>
+</html>

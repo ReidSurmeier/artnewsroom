@@ -15,20 +15,30 @@ interface ArticleFeedProps {
 }
 
 export default function ArticleFeed({ articles, onSelect }: ArticleFeedProps) {
+  const top3 = articles.slice(0, 3);
+
+  if (top3.length === 0) {
+    return (
+      <div className="feed-empty">
+        <span className="feed-empty-text">No articles yet.</span>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {articles.map(article => (
-        <div
-          key={article.id}
-          className={`feed-item${article.is_read ? ' read' : ''}`}
-          onClick={() => onSelect(article.id)}
-        >
-          <div className="feed-item-title">{article.title}</div>
-          <div className="feed-item-meta">
-            {article.source} &middot; {article.date_added}
-          </div>
-        </div>
-      ))}
+    <div className="feed-top-picks">
+      <ul>
+        {top3.map(article => (
+          <li
+            key={article.id}
+            className={`sidebar-item${article.is_read ? ' read' : ''}`}
+            onClick={() => onSelect(article.id)}
+          >
+            <span className="sidebar-item-title">{article.title}</span>
+            <span className="sidebar-item-source">{article.source}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
