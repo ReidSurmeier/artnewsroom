@@ -39,6 +39,7 @@ export const SOURCES: Source[] = [
   { name: 'The Intrinsic Perspective', url: 'https://theintrinsicperspective.com', rss: 'https://www.theintrinsicperspective.com/feed', tier: 1 },
   { name: 'Henrik Karlsson', url: 'https://henrikkarlsson.xyz', rss: 'https://www.henrikkarlsson.xyz/feed', tier: 1 },
   { name: 'Asterisk', url: 'https://asteriskmag.com', rss: 'https://asteriskmag.com/feed', tier: 1 },
+  { name: 'Personal Canon', url: 'https://www.personalcanon.com', rss: 'https://www.personalcanon.com/feed', tier: 1 },
 
   // Tier 2
   { name: 'New Models', url: 'https://newmodels.io', tier: 2 }, // browser-only

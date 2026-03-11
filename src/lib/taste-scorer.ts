@@ -133,7 +133,21 @@ export function scoreItem(item: FeedItem): ScoredItem {
   else if (ageDays < 7) recencyScore = 4;
   else if (ageDays < 14) recencyScore = 2;
 
-  const score = domainScore + keywordScore + sourceScore + recencyScore;
+  // 5. Indie/Substack boost — small publishers get a floor score so they
+  //    aren't drowned out by NYT/New Yorker domain-affinity dominance.
+  //    Tier 3 (indie blogs/substacks) +20, Tier 2 +10, Tier 4 +5.
+  let indieBoost = 0;
+  const { SOURCES } = require('./rss');
+  const matchedSource = SOURCES.find((s: any) =>
+    s.name.toLowerCase() === item.source.toLowerCase()
+  );
+  if (matchedSource) {
+    if (matchedSource.tier === 3) indieBoost = 20;
+    else if (matchedSource.tier === 2) indieBoost = 10;
+    else if (matchedSource.tier === 4) indieBoost = 5;
+  }
+
+  const score = domainScore + keywordScore + sourceScore + recencyScore + indieBoost;
 
   return {
     ...item,

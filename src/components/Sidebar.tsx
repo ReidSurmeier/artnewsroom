@@ -34,10 +34,21 @@ export default function Sidebar({ articles, selectedId, onSelect, hidden, tracke
   };
 
   // Top 3 picks: long-form prose (10k+ chars ≈ 2000+ words), with images, diverse sources
+  // Always reserve one slot for Personal Canon (Celine Nguyen)
   const MIN_LENGTH = 10000;
+  const PINNED_SOURCE = 'Personal Canon';
   const longForm = articles.filter(a => a.has_images === 1 && (a.content_length || 0) >= MIN_LENGTH);
   const top3: ArticleSummary[] = [];
   const usedSources = new Set<string>();
+
+  // First, try to pin a Personal Canon article
+  const pinnedArticle = longForm.find(a => a.source === PINNED_SOURCE);
+  if (pinnedArticle) {
+    top3.push(pinnedArticle);
+    usedSources.add(PINNED_SOURCE);
+  }
+
+  // Fill remaining slots with diverse sources
   for (const a of longForm) {
     if (top3.length >= 3) break;
     if (usedSources.has(a.source)) continue;

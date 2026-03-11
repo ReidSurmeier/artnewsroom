@@ -49,21 +49,39 @@ async function main() {
       .map(r => r.source_url)
   );
 
-  // Get top candidates — fetch more than needed so diversity filter has room
+  // Get all candidates sorted by score
   const allCandidates = db.prepare(
-    'SELECT url, title, source, date, score FROM candidates ORDER BY score DESC LIMIT ?'
-  ).all(LIMIT * 5) as { url: string; title: string; source: string; date: string; score: number }[];
+    'SELECT url, title, source, date, score FROM candidates ORDER BY score DESC'
+  ).all() as { url: string; title: string; source: string; date: string; score: number }[];
 
-  // Enforce source diversity: max N articles per source
+  // Phase 1: Guarantee at least 1 article per source (diversity floor)
   const sourceCounts = new Map<string, number>();
   const candidates: typeof allCandidates = [];
+  const usedUrls = new Set<string>();
+
+  // First pass: pick the top candidate from each source that has candidates
+  const sourceTopPicks = new Map<string, typeof allCandidates[0]>();
   for (const c of allCandidates) {
     if (existing.has(c.url)) continue;
+    if (!sourceTopPicks.has(c.source)) {
+      sourceTopPicks.set(c.source, c);
+    }
+  }
+  for (const [source, c] of sourceTopPicks) {
+    candidates.push(c);
+    usedUrls.add(c.url);
+    sourceCounts.set(source, 1);
+  }
+
+  // Phase 2: Fill remaining slots by score, respecting MAX_PER_SOURCE
+  for (const c of allCandidates) {
+    if (candidates.length >= LIMIT) break;
+    if (existing.has(c.url) || usedUrls.has(c.url)) continue;
     const count = sourceCounts.get(c.source) || 0;
     if (count >= MAX_PER_SOURCE) continue;
     sourceCounts.set(c.source, count + 1);
     candidates.push(c);
-    if (candidates.length >= LIMIT) break;
+    usedUrls.add(c.url);
   }
 
   console.log(`Promoting ${candidates.length} candidates (max ${MAX_PER_SOURCE}/source)...\n`);
