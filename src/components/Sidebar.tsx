@@ -11,6 +11,7 @@ interface ArticleSummary {
   excerpt: string;
   is_read: number;
   has_images?: number;
+  content_length?: number;
 }
 
 interface SidebarProps {
@@ -32,11 +33,19 @@ export default function Sidebar({ articles, selectedId, onSelect, hidden, tracke
     return trackedWriters.some(w => authorLower.includes(w));
   };
 
-  // Top 3 picks must have images — no empty shells
-  const withImages = articles.filter(a => a.has_images === 1);
-  const withoutImages = articles.filter(a => a.has_images !== 1);
-  const top3 = withImages.slice(0, 3);
-  const rest = [...withImages.slice(3), ...withoutImages];
+  // Top 3 picks: long-form prose (10k+ chars ≈ 2000+ words), with images, diverse sources
+  const MIN_LENGTH = 10000;
+  const longForm = articles.filter(a => a.has_images === 1 && (a.content_length || 0) >= MIN_LENGTH);
+  const top3: ArticleSummary[] = [];
+  const usedSources = new Set<string>();
+  for (const a of longForm) {
+    if (top3.length >= 3) break;
+    if (usedSources.has(a.source)) continue;
+    top3.push(a);
+    usedSources.add(a.source);
+  }
+  const top3Ids = new Set(top3.map(a => a.id));
+  const rest = articles.filter(a => !top3Ids.has(a.id));
 
   return (
     <nav className={`sidebar${hidden ? ' hidden-mobile' : ''}`}>

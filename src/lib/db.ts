@@ -121,7 +121,8 @@ export function getArticles(includeArchived = false) {
       SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
         CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
         CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images,
-        CASE WHEN content_markdown IS NOT NULL AND content_markdown != '' THEN 1 ELSE 0 END as has_content
+        CASE WHEN content_markdown IS NOT NULL AND content_markdown != '' THEN 1 ELSE 0 END as has_content,
+        LENGTH(content_markdown) as content_length
       FROM articles WHERE 1=1 ${contentFilter} ORDER BY date_added DESC
     `).all();
   }
@@ -129,7 +130,8 @@ export function getArticles(includeArchived = false) {
     SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
       CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
       CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images,
-        CASE WHEN content_markdown IS NOT NULL AND content_markdown != '' THEN 1 ELSE 0 END as has_content
+        CASE WHEN content_markdown IS NOT NULL AND content_markdown != '' THEN 1 ELSE 0 END as has_content,
+        LENGTH(content_markdown) as content_length
     FROM articles WHERE COALESCE(is_archived, 0) = 0 ${contentFilter} ORDER BY date_added DESC
   `).all();
 }
