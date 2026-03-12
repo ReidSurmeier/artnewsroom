@@ -17,14 +17,17 @@ interface ArticleSummary {
   excerpt: string;
   is_read: number;
   is_archived: number;
+  is_saved?: number;
 }
 
 export default function Home() {
   const [articles, setArticles] = useState<ArticleSummary[]>([]);
   const [archivedArticles, setArchivedArticles] = useState<ArticleSummary[]>([]);
+  const [savedArticles, setSavedArticles] = useState<ArticleSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filterIds, setFilterIds] = useState<string[] | null>(null);
   const [showArchive, setShowArchive] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   const [showWriters, setShowWriters] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [trackedWriters, setTrackedWriters] = useState<string[]>([]);
@@ -41,6 +44,10 @@ export default function Home() {
     fetch('/api/articles?archived=true').then(r => r.json()).then(setArchivedArticles);
   };
 
+  const loadSaved = () => {
+    fetch('/api/articles?saved=true').then(r => r.json()).then(setSavedArticles);
+  };
+
   const loadWriters = () => {
     fetch('/api/writers').then(r => r.json()).then((writers: { name: string }[]) => {
       setTrackedWriters(writers.map(w => w.name.toLowerCase()));
@@ -55,6 +62,10 @@ export default function Home() {
   useEffect(() => {
     if (showArchive) loadArchived();
   }, [showArchive]);
+
+  useEffect(() => {
+    if (showSaved) loadSaved();
+  }, [showSaved]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -79,7 +90,7 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedId, focusMode]);
 
-  const currentArticles = showArchive ? archivedArticles : articles;
+  const currentArticles = showSaved ? savedArticles : showArchive ? archivedArticles : articles;
   const filteredArticles = filterIds
     ? currentArticles.filter(a => filterIds.includes(a.id))
     : currentArticles;
@@ -137,8 +148,28 @@ export default function Home() {
     setSelectedId(null);
   };
 
+  const handleSave = async (articleId: string, saved: boolean) => {
+    await fetch('/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ articleId, saved }),
+    });
+    loadArticles();
+    loadSaved();
+    if (showArchive) loadArchived();
+  };
+
   const toggleArchive = () => {
     setShowArchive(prev => !prev);
+    setShowSaved(false);
+    setSelectedId(null);
+    setFilterIds(null);
+    setShowWriters(false);
+  };
+
+  const toggleSaved = () => {
+    setShowSaved(prev => !prev);
+    setShowArchive(false);
     setSelectedId(null);
     setFilterIds(null);
     setShowWriters(false);
@@ -172,6 +203,8 @@ export default function Home() {
         onFilter={handleFilter}
         showArchive={showArchive}
         onToggleArchive={toggleArchive}
+        showSaved={showSaved}
+        onToggleSaved={toggleSaved}
         articleSelected={!!selectedId}
         drawMode={drawMode}
         onToggleDraw={toggleDraw}
@@ -202,9 +235,11 @@ export default function Home() {
           <ArticleReader
             articleId={selectedId}
             isArchived={!!selectedArticle?.is_archived}
+            isSaved={!!selectedArticle?.is_saved}
             onBack={goBack}
             onSaveNotes={saveNotes}
             onArchive={handleArchive}
+            onSave={handleSave}
             drawMode={drawMode}
             focusMode={focusMode}
           />

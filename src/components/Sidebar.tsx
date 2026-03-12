@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 interface ArticleSummary {
   id: string;
@@ -24,8 +24,25 @@ interface SidebarProps {
   showingWriters?: boolean;
 }
 
+function getDayLabel(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterdayStart = new Date(todayStart);
+  yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+  if (date >= todayStart) return 'Today';
+  if (date >= yesterdayStart) return 'Yesterday';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function getDaySortKey(dateStr: string): string {
+  return dateStr.slice(0, 10); // YYYY-MM-DD for grouping
+}
+
 export default function Sidebar({ articles, selectedId, onSelect, hidden, trackedWriters = [], onShowWriters, showingWriters }: SidebarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [openDays, setOpenDays] = useState<Set<string>>(new Set());
 
   const isTrackedWriter = (article: ArticleSummary) => {
     if (!article.author || trackedWriters.length === 0) return false;
@@ -58,23 +75,57 @@ export default function Sidebar({ articles, selectedId, onSelect, hidden, tracke
   const top3Ids = new Set(top3.map(a => a.id));
   const rest = articles.filter(a => !top3Ids.has(a.id));
 
+  // Group rest by day
+  const dayGroups = useMemo(() => {
+    const groups: { key: string; label: string; articles: ArticleSummary[] }[] = [];
+    const groupMap = new Map<string, ArticleSummary[]>();
+    const labelMap = new Map<string, string>();
+
+    for (const a of rest) {
+      const key = getDaySortKey(a.date_added);
+      if (!groupMap.has(key)) {
+        groupMap.set(key, []);
+        labelMap.set(key, getDayLabel(a.date_added));
+      }
+      groupMap.get(key)!.push(a);
+    }
+
+    // Sort by date descending
+    const sortedKeys = [...groupMap.keys()].sort((a, b) => b.localeCompare(a));
+    for (const key of sortedKeys) {
+      groups.push({ key, label: labelMap.get(key)!, articles: groupMap.get(key)! });
+    }
+    return groups;
+  }, [rest]);
+
+  const toggleDay = (key: string) => {
+    setOpenDays(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const renderArticle = (article: ArticleSummary) => (
+    <li
+      key={article.id}
+      className={`sidebar-item${article.id === selectedId ? ' active' : ''}${article.is_read ? ' read' : ''}`}
+      onClick={() => onSelect(article.id)}
+    >
+      <span className="sidebar-item-title">
+        {isTrackedWriter(article) && <span className="tracked-dot" />}
+        {article.title}
+      </span>
+      <span className="sidebar-item-source">{article.source}</span>
+    </li>
+  );
+
   return (
     <nav className={`sidebar${hidden ? ' hidden-mobile' : ''}`}>
 
       <ul>
-        {top3.map(article => (
-          <li
-            key={article.id}
-            className={`sidebar-item${article.id === selectedId ? ' active' : ''}${article.is_read ? ' read' : ''}`}
-            onClick={() => onSelect(article.id)}
-          >
-            <span className="sidebar-item-title">
-              {isTrackedWriter(article) && <span className="tracked-dot" />}
-              {article.title}
-            </span>
-            <span className="sidebar-item-source">{article.source}</span>
-          </li>
-        ))}
+        {top3.map(renderArticle)}
       </ul>
 
       {rest.length > 0 && (
@@ -85,23 +136,21 @@ export default function Sidebar({ articles, selectedId, onSelect, hidden, tracke
           >
             {moreOpen ? '▾' : '▸'} More ({rest.length})
           </button>
-          {moreOpen && (
-            <ul>
-              {rest.map(article => (
-                <li
-                  key={article.id}
-                  className={`sidebar-item${article.id === selectedId ? ' active' : ''}${article.is_read ? ' read' : ''}`}
-                  onClick={() => onSelect(article.id)}
-                >
-                  <span className="sidebar-item-title">
-                    {isTrackedWriter(article) && <span className="tracked-dot" />}
-                    {article.title}
-                  </span>
-                  <span className="sidebar-item-source">{article.source}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          {moreOpen && dayGroups.map(group => (
+            <div key={group.key}>
+              <button
+                className="sidebar-day-toggle"
+                onClick={() => toggleDay(group.key)}
+              >
+                {openDays.has(group.key) ? '▾' : '▸'} {group.label} ({group.articles.length})
+              </button>
+              {openDays.has(group.key) && (
+                <ul>
+                  {group.articles.map(renderArticle)}
+                </ul>
+              )}
+            </div>
+          ))}
         </>
       )}
     </nav>

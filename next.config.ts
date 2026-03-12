@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Hide dev indicator in production
+  devIndicators: false,
+
   // Standalone output — produces a minimal self-contained build
   // (~25MB instead of 674MB node_modules)
   output: "standalone",

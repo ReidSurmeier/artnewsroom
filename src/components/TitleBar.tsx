@@ -15,6 +15,8 @@ interface TitleBarProps {
   onFilter: (ids: string[] | null) => void;
   showArchive: boolean;
   onToggleArchive: () => void;
+  showSaved?: boolean;
+  onToggleSaved?: () => void;
   articleSelected?: boolean;
   drawMode?: boolean;
   onToggleDraw?: () => void;
@@ -26,7 +28,7 @@ interface TitleBarProps {
   onShowAbout?: () => void;
 }
 
-export default function TitleBar({ articles, onFilter, showArchive, onToggleArchive, articleSelected, drawMode, onToggleDraw, focusMode, onToggleFocus, showWriters, onShowWriters, showAbout, onShowAbout }: TitleBarProps) {
+export default function TitleBar({ articles, onFilter, showArchive, onToggleArchive, showSaved, onToggleSaved, articleSelected, drawMode, onToggleDraw, focusMode, onToggleFocus, showWriters, onShowWriters, showAbout, onShowAbout }: TitleBarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -91,6 +93,12 @@ export default function TitleBar({ articles, onFilter, showArchive, onToggleArch
                     onClick={() => { onShowWriters?.(); setMenuOpen(false); }}
                   >
                     Writers
+                  </button>
+                  <button
+                    className={`titlebar-dropdown-item${showSaved ? ' active' : ''}`}
+                    onClick={() => { onToggleSaved?.(); setMenuOpen(false); }}
+                  >
+                    {showSaved ? '← Feed' : 'Saved'}
                   </button>
                   <button
                     className={`titlebar-dropdown-item${showArchive ? ' active' : ''}`}

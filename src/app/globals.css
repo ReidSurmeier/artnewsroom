@@ -95,6 +95,31 @@ a {
   margin-bottom: 12px;
 }
 
+.article-action-btns {
+  display: flex;
+  gap: 6px;
+}
+
+.save-btn {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.75rem;
+  background: none;
+  border: 1px solid #222;
+  padding: 2px 10px;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+}
+
+.save-btn:hover {
+  background: #000;
+  color: #fff;
+}
+
+.save-btn.saved {
+  background: #222;
+  color: #fff;
+}
+
 .archive-btn {
   font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
   font-size: 0.75rem;
@@ -214,6 +239,25 @@ a {
 .sidebar-more-toggle:hover {
   opacity: 1;
   background: #f5f5f5;
+}
+
+.sidebar-day-toggle {
+  font-family: 'AUTHENTICSans-Condensed-90', sans-serif;
+  font-size: 0.7rem;
+  width: 100%;
+  text-align: left;
+  padding: 5px 4px 5px 12px;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  background: #fafafa;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  opacity: 0.7;
+}
+
+.sidebar-day-toggle:hover {
+  opacity: 1;
+  background: #f0f0f0;
 }
 
 /* Article Feed — Top 3 Picks */

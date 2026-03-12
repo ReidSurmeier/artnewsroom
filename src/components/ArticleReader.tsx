@@ -49,14 +49,16 @@ interface Annotation {
 interface ArticleReaderProps {
   articleId: string;
   isArchived?: boolean;
+  isSaved?: boolean;
   onBack: () => void;
   onSaveNotes: (articleId: string, notes: string) => Promise<void>;
   onArchive: (articleId: string, archived: boolean) => Promise<void>;
+  onSave?: (articleId: string, saved: boolean) => Promise<void>;
   drawMode?: boolean;
   focusMode?: boolean;
 }
 
-export default function ArticleReader({ articleId, isArchived, onBack, onSaveNotes, onArchive, drawMode, focusMode }: ArticleReaderProps) {
+export default function ArticleReader({ articleId, isArchived, isSaved, onBack, onSaveNotes, onArchive, onSave, drawMode, focusMode }: ArticleReaderProps) {
   const [article, setArticle] = useState<ArticleFull | null>(null);
   const [references, setReferences] = useState<Reference[]>([]);
   const [articleImages, setArticleImages] = useState<ArticleImage[]>([]);
@@ -437,12 +439,20 @@ export default function ArticleReader({ articleId, isArchived, onBack, onSaveNot
           {!focusMode && (
             <div className="article-top-actions">
               <button className="back-btn" onClick={onBack}>&larr; Back</button>
-              <button
-                className={`archive-btn${isArchived ? ' archived' : ''}`}
-                onClick={() => onArchive(articleId, !isArchived)}
-              >
-                {isArchived ? '↩ Unarchive' : '↓ Archive'}
-              </button>
+              <div className="article-action-btns">
+                <button
+                  className={`save-btn${isSaved ? ' saved' : ''}`}
+                  onClick={() => onSave?.(articleId, !isSaved)}
+                >
+                  {isSaved ? '★ Saved' : '☆ Save'}
+                </button>
+                <button
+                  className={`archive-btn${isArchived ? ' archived' : ''}`}
+                  onClick={() => onArchive(articleId, !isArchived)}
+                >
+                  {isArchived ? '↩ Unarchive' : '↓ Archive'}
+                </button>
+              </div>
             </div>
           )}
 
@@ -453,7 +463,7 @@ export default function ArticleReader({ articleId, isArchived, onBack, onSaveNot
               <a href={article.source_url} target="_blank" rel="noopener noreferrer">
                 {article.source}
               </a>
-              {article.date_published && <> &middot; {article.date_published}</>}
+              {article.date_published && <> &middot; {new Date(article.date_published).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</>}
             </div>
           )}
 

@@ -124,6 +124,25 @@ async function main() {
   console.log(`\n── Scan complete ──`);
   console.log(`${newItems.length} candidates stored in DB`);
   console.log(`Elapsed: ${elapsed}s`);
+
+  // Auto-archive articles older than 7 days (unread articles get archived too)
+  autoArchiveOld(db);
+}
+
+function autoArchiveOld(db: ReturnType<typeof getDb>) {
+  const ARCHIVE_AFTER_DAYS = 7;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - ARCHIVE_AFTER_DAYS);
+  const cutoffStr = cutoff.toISOString();
+
+  const result = db.prepare(`
+    UPDATE articles SET is_archived = 1
+    WHERE COALESCE(is_archived, 0) = 0
+      AND date_added < ?
+  `).run(cutoffStr);
+
+  console.log(`\n── Auto-archive ──`);
+  console.log(`Archived ${result.changes} articles older than ${ARCHIVE_AFTER_DAYS} days`);
 }
 
 main().catch(err => {

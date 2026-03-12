@@ -56,6 +56,8 @@ function initDb(db: Database.Database) {
 
   // Migration: add is_archived column if not present
   try { db.exec('ALTER TABLE articles ADD COLUMN is_archived INTEGER DEFAULT 0'); } catch {}
+  // Migration: add is_saved column if not present
+  try { db.exec('ALTER TABLE articles ADD COLUMN is_saved INTEGER DEFAULT 0'); } catch {}
 
   // Writers table
   db.exec(`
@@ -119,6 +121,7 @@ export function getArticles(includeArchived = false) {
   if (includeArchived) {
     return db.prepare(`
       SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+        COALESCE(is_saved, 0) as is_saved,
         CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
         CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images,
         CASE WHEN content_markdown IS NOT NULL AND content_markdown != '' THEN 1 ELSE 0 END as has_content,
@@ -128,6 +131,7 @@ export function getArticles(includeArchived = false) {
   }
   return db.prepare(`
     SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+      COALESCE(is_saved, 0) as is_saved,
       CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
       CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images,
         CASE WHEN content_markdown IS NOT NULL AND content_markdown != '' THEN 1 ELSE 0 END as has_content,
@@ -139,8 +143,11 @@ export function getArticles(includeArchived = false) {
 export function getArchivedArticles() {
   const db = getDb();
   return db.prepare(`
-    SELECT id, title, source, date_added, excerpt, is_read, 1 as is_archived,
-      CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes
+    SELECT id, title, author, source, date_added, excerpt, is_read, 1 as is_archived,
+      COALESCE(is_saved, 0) as is_saved,
+      CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
+      CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images,
+      LENGTH(content_markdown) as content_length
     FROM articles WHERE is_archived = 1 ORDER BY date_added DESC
   `).all();
 }
@@ -153,6 +160,28 @@ export function archiveArticle(id: string) {
 export function unarchiveArticle(id: string) {
   const db = getDb();
   db.prepare('UPDATE articles SET is_archived = 0 WHERE id = ?').run(id);
+}
+
+export function saveArticle(id: string) {
+  const db = getDb();
+  db.prepare('UPDATE articles SET is_saved = 1 WHERE id = ?').run(id);
+}
+
+export function unsaveArticle(id: string) {
+  const db = getDb();
+  db.prepare('UPDATE articles SET is_saved = 0 WHERE id = ?').run(id);
+}
+
+export function getSavedArticles() {
+  const db = getDb();
+  return db.prepare(`
+    SELECT id, title, author, source, date_added, excerpt, is_read, COALESCE(is_archived, 0) as is_archived,
+      COALESCE(is_saved, 0) as is_saved,
+      CASE WHEN notes != '' THEN 1 ELSE 0 END as has_notes,
+      CASE WHEN content_html LIKE '%<img%' OR content_markdown LIKE '%![%' THEN 1 ELSE 0 END as has_images,
+      LENGTH(content_markdown) as content_length
+    FROM articles WHERE COALESCE(is_saved, 0) = 1 ORDER BY date_added DESC
+  `).all();
 }
 
 export function getArticle(id: string) {
