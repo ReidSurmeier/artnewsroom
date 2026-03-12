@@ -8,6 +8,7 @@
 import { getDb, addArticle } from '../lib/db';
 import { JSDOM } from 'jsdom';
 import { Readability } from '@mozilla/readability';
+import { processArticleImages } from './process-images';
 import TurndownService from 'turndown';
 import crypto from 'crypto';
 
@@ -121,6 +122,16 @@ async function main() {
       });
       console.log('✅');
       success++;
+
+      // Process images (ASCII art + B&W conversion)
+      if (content.content.includes('<img')) {
+        console.log(`    Processing images...`);
+        try {
+          await processArticleImages(id);
+        } catch (e) {
+          console.log(`    ⚠️ Image processing failed: ${e}`);
+        }
+      }
     } else {
       // Skip — don't insert metadata-only shells with no content
       console.log('⚠️ (skipped — no content)');
