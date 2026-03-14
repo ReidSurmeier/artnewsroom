@@ -307,21 +307,27 @@ export default function ArticleReader({ articleId, isArchived, isSaved, onBack, 
     const scaleAsciiArt = () => {
       const pres = content.querySelectorAll<HTMLPreElement>('pre.ascii-art');
       pres.forEach(pre => {
-        // Get the first line to determine character count
-        const firstLine = pre.textContent?.split('\n')[0];
-        if (!firstLine) return;
-        const charCount = firstLine.length;
-        if (charCount === 0) return;
+        // Get the longest line to determine character count
+        const lines = pre.textContent?.split('\n') || [];
+        const charCount = Math.max(...lines.map(l => l.length));
+        if (!charCount || charCount === 0) return;
 
         // Container width is the article content width
         const containerWidth = content.offsetWidth;
 
-        // Monospace char width ratio is ~0.6 of font-size
-        // containerWidth = charCount * 0.6 * fontSize + letterSpacing * charCount
-        // Solve for fontSize (ignoring letter-spacing for now, it's tiny)
-        const fontSize = containerWidth / (charCount * 0.602);
+        // Start with estimated font size, then shrink if it overflows
+        let fontSize = containerWidth / (charCount * 0.602);
         pre.style.fontSize = `${fontSize}px`;
         pre.style.lineHeight = `${fontSize * 1.35}px`;
+
+        // Measure actual render and shrink until it fits
+        let attempts = 0;
+        while (pre.scrollWidth > containerWidth + 1 && attempts < 20) {
+          fontSize *= containerWidth / pre.scrollWidth;
+          pre.style.fontSize = `${fontSize}px`;
+          pre.style.lineHeight = `${fontSize * 1.35}px`;
+          attempts++;
+        }
       });
     };
 

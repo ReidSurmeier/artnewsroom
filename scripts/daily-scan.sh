@@ -14,6 +14,18 @@ EXIT_CODE=$?
 
 echo "=== Scan finished at $(date) with exit code $EXIT_CODE ===" >> "$LOG_FILE"
 
+# Promote top candidates to articles
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "=== Promoting candidates at $(date) ===" >> "$LOG_FILE"
+  /usr/bin/npx tsx src/scripts/promote-candidates.ts >> "$LOG_FILE" 2>&1
+  echo "=== Promotion finished at $(date) with exit code $? ===" >> "$LOG_FILE"
+fi
+
+# Restart production server to pick up new articles
+echo "=== Restarting production server ===" >> "$LOG_FILE"
+systemctl --user restart artnewsroom.service >> "$LOG_FILE" 2>&1 || true
+echo "=== Server restarted at $(date) ===" >> "$LOG_FILE"
+
 # Commit any new data
 if [[ -n "$(git status --porcelain data/)" ]]; then
   git add data/
